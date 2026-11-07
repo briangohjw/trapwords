@@ -115,6 +115,23 @@ button.chip{border-style:solid;border-color:var(--danger)}
 details{color:var(--dust)} details summary{cursor:pointer;color:var(--parch);font-weight:700}
 details ul,details ol{padding-left:1.2em;margin:.5em 0 0;display:flex;flex-direction:column;gap:5px;max-width:70ch}
 .log{color:var(--dust);font-size:.95rem;display:flex;flex-direction:column;gap:3px}
+.credit{text-align:center;color:var(--dust);font-size:.9rem;padding-top:6px}
+.credit a{color:var(--torch);text-decoration:none;border-bottom:1px solid currentColor}
+.roster{display:flex;flex-direction:column;gap:8px;width:100%}
+.prow{display:flex;gap:8px;align-items:center}
+.prow input{flex:1}
+.prow button{padding:9px 12px;font-size:.95rem}
+.online{width:10px;height:10px;border-radius:50%;flex:none;background:var(--mortar)}
+.online.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.viewer{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.viewer .team{display:flex;flex-direction:column;gap:6px;background:var(--slab);border:1px solid var(--mortar);border-radius:12px;padding:12px 14px}
+.viewer .team.a{border-color:color-mix(in srgb,var(--teamA) 60%,var(--mortar))}
+.viewer .team.b{border-color:color-mix(in srgb,var(--teamB) 60%,var(--mortar))}
+.pname{display:flex;align-items:center;gap:8px}
+.pname .torch{font-size:.75rem;font-weight:700;color:#21160a;background:var(--torch);border-radius:5px;padding:1px 7px}
+.overlay{position:fixed;inset:0;background:rgba(10,11,14,.88);z-index:20;display:flex;align-items:center;justify-content:center;
+  padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.overlay .panel{max-width:720px;width:100%;max-height:100%;overflow:auto}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--dust);font-size:.9rem}
 @media (max-width:640px){ .room{min-height:110px;padding:7px} .room .n{font-size:1.6rem} .tok{width:28px;height:28px;font-size:.95rem} }
 </style>
@@ -164,7 +181,7 @@ const norm = s => String(s||"").trim().toLowerCase();
 
 /* ============================================================ shared view helpers (use a state object s) */
 const tname = (s,t) => `<span class="${tcls(t)}">${esc(s.names[t])}</span>`;
-const playerList = (s,t) => String(s.players[t]||"").split(",").map(x=>x.trim()).filter(Boolean);
+const playerList = (s,t) => ((s.roster && s.roster[t]) || []).map(p => String(p.name||"").trim()).filter(Boolean);
 const clueGiver = (s,t) => { const l = playerList(s,t); return l.length ? l[s.torch[t] % l.length] : ""; };
 const monsterOf = s => { const m = MONSTERS[s.cfg.monster] || MONSTERS.mummy; return s.cfg.monster==="custom" ? {...m, text: s.cfg.customRule || "No special rule entered."} : m; };
 const guessLimit = (s,t) => (s.battle && s.battle[t] && monsterOf(s).guesses) || MAX_GUESSES;
@@ -202,8 +219,8 @@ let ROLE = null;            // "host" | "phone"
 let S = null;               // host: authoritative state
 let V = null;               // phone: last received state
 let peer = null;
-const conns = new Map();    // host: conn -> team
-let conn = null, myTeam = 0, phoneCode = "", netState = "connecting", netMsg = "";
+const conns = new Map();    // host: conn -> {team, pid}
+let conn = null, myTeam = 0, myName = "", myId = "", phoneCode = "", netState = "connecting", netMsg = "", showJoin = false;
 let localEnd = 0;           // phone: local clock end time for the running timer
 let pl = {key:"", step:"give"}; // phone-local step for the book hand-off
 let joinErr = "";
@@ -226,38 +243,34 @@ function paint(html){
   document.querySelectorAll("[data-qr]").forEach(el => { try{ new QRCode(el,{text:el.dataset.qr,width:150,height:150,colorDark:"#14161b",colorLight:"#ece3d0"}); }catch(e){ el.textContent=""; } });
   tickUI();
 }
-function render(){ ROLE==="host" ? paint(hostView()) : ROLE==="phone" ? paint(phoneView()) : paint(startView()); }
+const CREDIT = `<div class="credit">Created by Brian Goh, <a href="https://briangohjw.com" target="_blank" rel="noopener">briangohjw.com</a></div>`;
+function render(){ const body = ROLE==="host" ? hostView() + (showJoin ? joinOverlay() : "") : ROLE==="phone" ? phoneView() : startView(); paint(body + CREDIT); }
 
 /* ============================================================ start screen */
 function startView(){
   const saved = lsGet(PREFIX+"host");
-  const ph = lsGet(PREFIX+"phone") || {};
-  const qs = new URLSearchParams(location.search);
-  const code = (qs.get("join") || ph.code || "").toUpperCase();
   return `<div class="top"><div><div class="label">a table game for two teams</div><h1>Trapwords Table</h1></div></div>
   <div class="grid2">
     <div class="panel"><h3>The table iPad</h3>
-      <p class="hint">Shows the dungeon, the timer and the room code. Put it in the middle of the table.</p>
+      <p class="hint">Shows the dungeon, the timer and a QR code for each team. Put it in the middle of the table.</p>
       <button class="primary big" data-a="host-new">Host a new game</button>
-      ${saved && saved.code ? `<button data-a="host-resume">Resume game ${esc(saved.code)} (round ${saved.round||1})</button>` : ""}
+      ${saved && saved.code ? `<button data-a="host-resume">Resume the last game (round ${saved.round||1})</button>` : ""}
     </div>
-    <div class="panel"><h3>A team phone</h3>
-      <p class="hint">Each team needs one phone. It holds your secret word for the other team and your trap list.</p>
-      <div class="field"><label class="label" for="jcode">room code</label><input id="jcode" maxlength="4" autocapitalize="characters" autocomplete="off" value="${esc(code)}" placeholder="ABCD" style="font-size:1.6rem;letter-spacing:.2em;text-transform:uppercase"></div>
-      <div class="row"><button class="primary" style="flex:1;background:var(--teamA);border-color:var(--teamA);box-shadow:none" data-a="join" data-t="0">Join first team</button>
-      <button class="primary" style="flex:1;background:var(--teamB);border-color:var(--teamB);box-shadow:none" data-a="join" data-t="1">Join second team</button></div>
-      <div class="err">${esc(joinErr)}</div>
+    <div class="panel"><h3>Joining a team?</h3>
+      <p class="hint">Point your phone camera at your team's QR code on the table iPad. You'll be asked for your name, then you're in.</p>
+      ${joinErr ? `<div class="err">${esc(joinErr)}</div>` : ""}
     </div>
   </div>
   ${RULES_HELP}`;
 }
 
 /* ============================================================ HOST: game logic */
-function newCode(){ const L="ABCDEFGHJKLMNPQRSTUVWXYZ"; let c=""; for(let i=0;i<4;i++) c+=L[Math.floor(Math.random()*L.length)]; return c; }
+function newCode(){ const L="abcdefghjkmnpqrstuvwxyz23456789"; let c=""; for(let i=0;i<10;i++) c+=L[Math.floor(Math.random()*L.length)]; return c; }
+const newId = () => Math.random().toString(36).slice(2,10);
 function freshState(code, keep){
   return { code, phase:"setup",
     cfg: keep?.cfg || {secs:60, words:"fantasy", layout:"std", curses:true, monster:"mummy", customRule:"", tiebreak:false},
-    names: keep?.names || ["Lanterns","Torches"], players: keep?.players || ["",""],
+    names: keep?.names || ["Lanterns","Torches"], roster: keep?.roster || [[],[]],
     rooms: LAYOUTS.std, pos:[0,0], monsterIdx:4, curses:[], torch:[0,0], round:1, glowStart:0,
     used:[], words:["",""], traps:[[],[]], ready:[false,false], battle:[false,false], active:[[],[]], monsterCurses:[[],[]],
     order:[0,1], turnIdx:0, turn:null, results:[null,null], usedTime:[null,null], notes:[], log:[], winners:[], monsterWon:false, v:0 };
@@ -322,7 +335,7 @@ function continueTurn(){
   const t = S.turn, d = t.d, ok = t.outcome==="win";
   S.results[d] = ok; S.usedTime[d] = t.used;
   const giver = clueGiver(S,d);
-  let line = `R${S.round}: ${S.names[d]}${giver?` (${giver})`:""} ${ok ? "guessed" : "missed"} "${S.words[d]}"${ok?"":` — ${t.reason}`}.`;
+  let line = `R${S.round}: ${S.names[d]}${giver?` (${giver})`:""} ${ok ? "guessed" : "missed"} "${S.words[d]}"${ok?"":`, ${t.reason}`}.`;
   if(ok && !S.battle[d]){ S.pos[d] = Math.min(S.pos[d]+1, S.monsterIdx); line += ` Advanced to room ${S.rooms[S.pos[d]]}.`; }
   S.log.push(line);
   S.turnIdx++;
@@ -357,12 +370,15 @@ function endRound(){
 }
 
 /* actions: from host UI or from phones (fromTeam set) */
-const HOST_ONLY = new Set(["start-game","fix","continue","next-round","pause","new-game","host-correct","host-fail","back-setup"]);
+const HOST_ONLY = new Set(["add-player","rm-player","up-player","start-game","fix","continue","next-round","pause","new-game","host-correct","host-fail","back-setup"]);
 function act(m, fromTeam){
   if(!S) return;
   const a = m.a;
   if(fromTeam!==undefined && HOST_ONLY.has(a)) return;
   switch(a){
+    case "add-player": S.roster[m.t].push({id:newId(), name:"", phone:false}); break;
+    case "rm-player": S.roster[m.t].splice(m.i,1); break;
+    case "up-player": if(m.i>0){ const r=S.roster[m.t]; [r[m.i-1],r[m.i]]=[r[m.i],r[m.i-1]]; } break;
     case "start-game": if(S.phase==="setup") startGame(); break;
     case "trap": if(S.phase==="traps" && !S.ready[m.t] && Number.isInteger(m.i) && m.i>=0 && m.i<S.traps[m.t].length){ S.traps[m.t][m.i] = String(m.v||"").slice(0,40); } break;
     case "ready":
@@ -403,6 +419,7 @@ function act(m, fromTeam){
 function hostStart(code, resume){
   ROLE = "host";
   S = resume || freshState(code);
+  if(!Array.isArray(S.roster)) S.roster = [[],[]];
   saveHost(); render();
   connectHost(S.code, 0);
 }
@@ -415,11 +432,16 @@ function connectHost(code, attempt){
     c.on("open", () => { conns.set(c, null); sendState(c); render(); });
     c.on("data", d => {
       if(!d || typeof d!=="object") return;
-      if(d.type==="hello"){ conns.set(c, d.team===1?1:0); sendState(c); render(); }
-      else if(d.type==="act"){ const t = conns.get(c); act(d, t===null||t===undefined ? 0 : t); }
+      if(d.type==="hello"){
+        const team = d.team===1 ? 1 : 0, pid = String(d.pid||"").slice(0,20), name = String(d.name||"").trim().slice(0,20);
+        conns.set(c, {team, pid});
+        if(pid && name) upsertPlayer(pid, name, team);
+        broadcast();
+      }
+      else if(d.type==="act"){ const info = conns.get(c); act(d, info ? info.team : 0); }
     });
-    c.on("close", () => { conns.delete(c); render(); });
-    c.on("error", () => { conns.delete(c); render(); });
+    c.on("close", () => { conns.delete(c); broadcast(); });
+    c.on("error", () => { conns.delete(c); broadcast(); });
   });
   peer.on("disconnected", () => { netState="connecting"; render(); try{ peer.reconnect(); }catch(e){} });
   peer.on("error", e => {
@@ -434,39 +456,68 @@ function connectHost(code, attempt){
     }
   });
 }
-function stateMsg(){ return {type:"state", s:S, remain:remainNow()}; }
+function upsertPlayer(pid, name, team){
+  let found = null;
+  [0,1].forEach(t => { const i = S.roster[t].findIndex(p => p.id===pid); if(i>=0){ found = S.roster[t][i]; if(t!==team) S.roster[t].splice(i,1); } });
+  if(found){ found.name = name; if(!S.roster[team].includes(found)) S.roster[team].push(found); }
+  else S.roster[team].push({id:pid, name, phone:true});
+}
+function onlineIds(){ const set = new Set(); conns.forEach(v => { if(v && v.pid) set.add(v.pid); }); return set; }
+function stateMsg(){ return {type:"state", s:S, remain:remainNow(), online:[...onlineIds()]}; }
 function sendState(c){ try{ if(c.open) c.send(stateMsg()); }catch(e){} }
 function broadcast(){ S.v++; saveHost(); const m = stateMsg(); conns.forEach((_,c) => { try{ if(c.open) c.send(m); }catch(e){} }); render(); }
 
 /* ============================================================ HOST: views */
 function teamStatusPills(){
-  const counts=[0,0]; conns.forEach(t => { if(t===0||t===1) counts[t]++; });
+  const counts=[0,0]; conns.forEach(v => { if(v && (v.team===0||v.team===1)) counts[v.team]++; });
   return [0,1].map(t => `<span class="pill ${counts[t]?'done':''}">${esc(S.names[t])}: ${counts[t]} phone${counts[t]===1?"":"s"}</span>`).join("");
 }
+function roomViewer(){
+  const on = onlineIds(), inGame = S.phase!=="setup";
+  return `<div class="viewer">${[0,1].map(t => {
+    const ps = S.roster[t].filter(p => String(p.name||"").trim());
+    const giver = inGame ? clueGiver(S,t) : "";
+    return `<div class="team ${t?'b':'a'}"><div class="label ${tcls(t)}">${esc(S.names[t])}, ${ps.length} player${ps.length===1?"":"s"}</div>
+      ${ps.length ? ps.map(p => `<div class="pname"><span class="online ${p.phone && on.has(p.id) ? "on" : ""}" title="${p.phone ? (on.has(p.id) ? "phone connected" : "phone offline") : "added by hand"}"></span>
+        <span>${esc(p.name)}</span>${giver && p.name.trim()===giver ? `<span class="torch">torch</span>` : ""}</div>`).join("")
+        : `<span class="hint">Nobody yet. Scan the QR code to join.</span>`}</div>`; }).join("")}</div>`;
+}
+function joinOverlay(){
+  const base = location.origin + location.pathname;
+  return `<div class="overlay"><div class="panel"><div class="top"><h2>Scan to join</h2><button data-a="hide-join">Done</button></div>
+    <div class="grid2">${[0,1].map(t => `<div class="teamcard"><div class="label ${tcls(t)}">${esc(S.names[t])}</div><div class="qr" data-qr="${esc(base+"?join="+S.code+"&team="+t)}"></div></div>`).join("")}</div>
+    ${roomViewer()}</div></div>`;
+}
 function netLine(){
-  return `<span><span class="netdot ${netState==="on"?"on":""}"></span>${netState==="on" ? `Room ${esc(S.code)} open` : esc(netMsg || "Opening room…")}</span>`;
+  return `<span><span class="netdot ${netState==="on"?"on":""}"></span>${netState==="on" ? "Open for phones" : esc(netMsg || "Opening the table…")}</span>`;
 }
 function hostTop(){
-  return `<div class="top"><div><div class="label">room ${esc(S.code)} · round ${S.round} of ${MAX_ROUNDS}</div><h1>The Dungeon</h1></div>
+  return `<div class="top"><div><div class="label">round ${S.round} of ${MAX_ROUNDS}</div><h1>The Dungeon</h1></div>
     <div class="meta"><div><span class="label">${esc(S.names[0])} room</span><b class="ta">${S.rooms[S.pos[0]]}</b></div>
     <div><span class="label">${esc(S.names[1])} room</span><b class="tb">${S.rooms[S.pos[1]]}</b></div>
     <div><span class="label">timer</span><b>${S.cfg.secs}s</b></div></div></div>`;
 }
 function hostFoot(){
-  return `<div class="foot">${netLine()}<span class="status">${teamStatusPills()}</span>
-    <span id="ng"><button class="ghost" data-a="ask-new">New game</button></span></div>`;
+  return `${roomViewer()}<div class="foot">${netLine()}
+    <span class="row"><button class="ghost" data-a="show-join">Show join QR codes</button><span id="ng"><button class="ghost" data-a="ask-new">New game</button></span></span></div>`;
 }
 function hostView(){
   const s = S, base = location.origin + location.pathname;
   if(s.phase==="setup"){
     const c = s.cfg;
-    return `<div class="top"><div><div class="label">join with a phone at this page, room code</div><div class="code">${esc(s.code)}</div></div>
+    return `<div class="top"><div><div class="label">scan your team's code to join</div><h1>Trapwords Table</h1></div>
       <div class="status">${teamStatusPills()}</div></div>
     <div class="grid2">${[0,1].map(t => `<div class="panel teamcard">
         <div class="field" style="width:100%"><label class="label" for="name${t}">team name</label><input id="name${t}" data-in="name" data-t="${t}" maxlength="16" value="${esc(s.names[t])}" style="border-color:var(--team${t?'B':'A'})"></div>
-        <div class="field" style="width:100%"><label class="label" for="pl${t}">players in clue-giving order (comma separated)</label><input id="pl${t}" data-in="players" data-t="${t}" maxlength="200" value="${esc(s.players[t])}" placeholder="e.g. Brian, Mei, Jun"></div>
         <div class="row" style="align-items:flex-start"><div class="qr" data-qr="${esc(base+"?join="+s.code+"&team="+t)}"></div>
-        <p class="hint" style="font-size:.95rem">Scan to join ${tname(s,t)} with a phone. Or open this site and type the code.</p></div>
+        <p class="hint" style="font-size:.95rem">Scan with a phone camera to join ${tname(s,t)}. Players show up below as they join.</p></div>
+        <div class="label">players, in clue-giving order</div>
+        <div class="roster">${s.roster[t].map((p,i) => `<div class="prow">
+            <span class="online ${p.phone && onlineIds().has(p.id) ? "on" : ""}" title="${p.phone ? "joined by phone" : "added by hand"}"></span>
+            <input id="rn${t}_${i}" data-in="rname" data-t="${t}" data-i="${i}" maxlength="20" value="${esc(p.name)}" placeholder="Player name">
+            <button class="ghost" data-a="up-player" data-t="${t}" data-i="${i}" ${i?"":"disabled"} aria-label="Move up">&uarr;</button>
+            <button class="ghost" data-a="rm-player" data-t="${t}" data-i="${i}" aria-label="Remove">&times;</button></div>`).join("")}
+          <button class="ghost" data-a="add-player" data-t="${t}" style="align-self:flex-start">+ Add a player without a phone</button></div>
       </div>`).join("")}</div>
     <div class="panel">
       <div class="grid2">
@@ -501,7 +552,7 @@ function hostView(){
     const d = s.turn.d, o = 1-d, g = clueGiver(s,d);
     return `${hostTop()}${boardHTML(s)}
     <div class="panel" style="align-items:center;text-align:center">
-      <div class="who ${tcls(d)}">${s.turnIdx===0?"first":"second"} turn${s.turnIdx===0 ? (s.pos[0]!==s.pos[1] ? " · team behind goes first" : " · glowing book goes first") : ""}</div>
+      <div class="who ${tcls(d)}">${s.turnIdx===0 ? (s.pos[0]!==s.pos[1] ? "first turn goes to the team behind" : "first turn goes to the glowing book") : "second turn"}</div>
       <h2>${tname(s,d)} give clues${g?`: ${esc(g)} holds the torch`:""}</h2>
       <p class="hint">${tname(s,o)}, hand your phone to the clue-giver so they can read the word, then start the timer.</p>
       ${rulesFor(s,d)}
@@ -512,7 +563,8 @@ function hostView(){
   if(s.phase==="run"){
     const t = s.turn, d = t.d;
     return `<div class="screen">
-      <div class="who ${tcls(d)}">${esc(s.names[d])} guessing${clueGiver(s,d)?` · clues from ${esc(clueGiver(s,d))}`:""} · ${s.traps[d].length} trap${s.traps[d].length>1?"s":""} set</div>
+      <div class="who ${tcls(d)}">${esc(s.names[d])} guessing</div>
+      <p class="hint">${clueGiver(s,d)?`${esc(clueGiver(s,d))} gives clues. `:""}${s.traps[d].length} trap${s.traps[d].length>1?"s are":" is"} set.</p>
       ${rulesFor(s,d)}
       <div class="timer" id="timer">${Math.ceil(remainNow())}</div>
       <div class="bar"><i id="bar"></i></div>
@@ -562,6 +614,9 @@ function hostView(){
 /* ============================================================ PHONE */
 function phoneJoin(code, team){
   ROLE = "phone"; phoneCode = code; myTeam = team; V = null;
+  const me = lsGet(PREFIX+"me") || {};
+  myId = me.id || newId(); myName = me.name || "";
+  lsSet(PREFIX+"me", {id:myId, name:myName});
   lsSet(PREFIX+"phone", {code, team});
   history.replaceState(null, "", location.pathname);
   render();
@@ -570,7 +625,7 @@ function phoneJoin(code, team){
   peer.on("open", () => phoneConnect());
   peer.on("disconnected", () => { try{ peer.reconnect(); }catch(e){} });
   peer.on("error", e => {
-    if(e.type==="peer-unavailable"){ netState="error"; netMsg=`Can't find room ${code}. Is the iPad open on this game?`; render(); setTimeout(phoneConnect, 3000); }
+    if(e.type==="peer-unavailable"){ netState="error"; netMsg="Can't reach the table. Is the iPad still open on this game?"; render(); setTimeout(phoneConnect, 3000); }
     else if(["network","server-error","socket-error","socket-closed"].includes(e.type)){ netState="error"; netMsg="Connection problem. Retrying…"; render(); }
   });
 }
@@ -582,11 +637,13 @@ function phoneConnect(){
   netState = netState==="on" ? "connecting" : netState; render();
   const c = peer.connect(PREFIX + phoneCode.toLowerCase(), {reliable:true});
   conn = c;
-  c.on("open", () => { netState="on"; netMsg=""; c.send({type:"hello", team:myTeam}); render(); });
-  c.on("data", d => { if(d && d.type==="state"){ const prevPhase = V?.phase; V = d.s; if(V.phase==="run" && !V.turn.paused) localEnd = Date.now() + d.remain*1000; if(prevPhase!=="run" && V.phase==="run") beep(660,.12); render(); } });
+  c.on("open", () => { netState="on"; netMsg=""; hello(); render(); });
+  c.on("data", d => { if(d && d.type==="state"){ const prevPhase = V?.phase; V = d.s; phoneOnline = new Set(d.online||[]); if(V.phase==="run" && !V.turn.paused) localEnd = Date.now() + d.remain*1000; if(prevPhase!=="run" && V.phase==="run") beep(660,.12); render(); } });
   c.on("close", () => { if(conn===c){ netState="connecting"; netMsg="Reconnecting…"; render(); retryT = setTimeout(phoneConnect, 2000); } });
   c.on("error", () => {});
 }
+let phoneOnline = new Set();
+function hello(){ try{ if(conn && conn.open) conn.send({type:"hello", team:myTeam, pid:myId, name:myName}); }catch(e){} }
 function send(a, extra={}){ try{ if(conn && conn.open) conn.send({type:"act", a, ...extra}); }catch(e){} }
 const trapTimers = {};
 function sendTrap(t,i,v){ clearTimeout(trapTimers[i]); trapTimers[i] = setTimeout(() => send("trap",{t,i,v}), 200); }
@@ -594,15 +651,23 @@ function phoneRemain(){ const s=V; if(!s?.turn) return 0; if(s.phase!=="run"||s.
 
 function phoneView(){
   const s = V, T = myTeam, O = 1-T;
-  const head = (inner) => `<div class="foot"><span><span class="netdot ${netState==="on"?"on":""}"></span>${netState==="on" ? `Room ${esc(phoneCode)}` : esc(netMsg || "Connecting…")}</span>
-      <span class="${tcls(T)}">${s ? esc(s.names[T]) : (T?"Second team":"First team")} phone</span><button class="ghost" data-a="leave" style="padding:6px 12px;font-size:.9rem">Leave</button></div>${inner}`;
-  if(!s) return head(`<div class="screen"><h2>Joining room ${esc(phoneCode)}…</h2><p class="hint">${esc(netMsg || "Keep the iPad open on the game.")}</p></div>`);
+  const teamName = s ? s.names[T] : (T ? "the second team" : "the first team");
+  const head = (inner) => `<div class="foot"><span><span class="netdot ${netState==="on"?"on":""}"></span>${netState==="on" ? "Connected" : esc(netMsg || "Connecting…")}</span>
+      <span class="${tcls(T)}">${myName ? `${esc(myName)} on ${esc(teamName)}` : esc(teamName)}</span><button class="ghost" data-a="leave" style="padding:6px 12px;font-size:.9rem">Leave</button></div>${inner}`;
+  if(!myName) return head(`<div class="screen"><div class="who ${tcls(T)}">joining ${esc(teamName)}</div><h2>What's your name?</h2>
+      <input id="myname" maxlength="20" autocomplete="given-name" placeholder="Your name" style="max-width:360px;font-size:1.3rem;text-align:center">
+      <button class="primary big" data-a="set-name">Join ${esc(teamName)}</button><div class="err" id="err"></div></div>`);
+  if(!s) return head(`<div class="screen"><h2>Joining the table…</h2><p class="hint">${esc(netMsg || "Keep the iPad open on the game.")}</p></div>`);
   if(s.phase==="setup") return head(`<div class="screen"><div class="who ${tcls(T)}">you're on</div><h1 class="${tcls(T)}">${esc(s.names[T])}</h1>
-      <p class="hint">Waiting for the iPad to start the game. Keep this phone with your team.</p>${RULES_HELP}</div>`);
+      <p class="hint">Waiting for the iPad to start the game.</p>
+      <div class="viewer" style="width:100%;text-align:left">${[0,1].map(t => { const ps = (s.roster[t]||[]).filter(p => String(p.name||"").trim());
+        return `<div class="team ${t?'b':'a'}"><div class="label ${tcls(t)}">${esc(s.names[t])}</div>${ps.map(p => `<div class="pname"><span class="online ${p.phone && phoneOnline.has(p.id) ? "on" : ""}"></span><span>${esc(p.name)}${p.id===myId?" (you)":""}</span></div>`).join("") || `<span class="hint">Nobody yet</span>`}</div>`; }).join("")}</div>
+      <button class="ghost" data-a="switch-team">Switch to ${esc(s.names[O])}</button>
+      ${RULES_HELP}</div>`);
 
   if(s.phase==="traps"){
     const n = s.traps[O].length, done = s.ready[O];
-    let me = `<div class="banner ${T?'b':'a'}"><div class="who">round ${s.round} · keep this screen to ${esc(s.names[T])}</div><h2>Trap ${tname(s,O)}</h2></div>
+    let me = `<div class="banner ${T?'b':'a'}"><div class="who">round ${s.round}, keep this screen to ${esc(s.names[T])}</div><h2>Trap ${tname(s,O)}</h2></div>
       <div class="label">their secret word</div><div class="secret">${esc(s.words[O])}</div>
       ${clueGiver(s,O)?`<p class="hint">Their clue-giver is <b>${esc(clueGiver(s,O))}</b>. Use what you know about them.</p>`:""}
       ${rulesFor(s,O)}
@@ -638,7 +703,8 @@ function phoneView(){
           <button class="ghost" data-a="pl-show">Clue-giver needs another look</button></div>`);
       }
       return head(`<div class="screen" style="gap:14px">
-        <div class="who ${tcls(d)}">judging ${esc(s.names[d])} · word: ${esc(s.words[d])}</div>
+        <div class="who ${tcls(d)}">you're judging ${esc(s.names[d])}</div>
+        <p class="hint">Their word is <b>${esc(s.words[d])}</b>.</p>
         <div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div>
         <div class="bar"><i id="bar"></i></div>
         <div class="label">listen for your traps (tap the one they said)</div>
@@ -706,20 +772,23 @@ document.addEventListener("click", e => {
   const a = b.dataset.a, i = b.dataset.i!==undefined ? +b.dataset.i : undefined;
   if(a==="host-new"){ lsDel(PREFIX+"host"); hostStart(newCode()); return; }
   if(a==="host-resume"){ const s = lsGet(PREFIX+"host"); if(s) hostStart(s.code, s); return; }
-  if(a==="join"){
-    const code = ($("#jcode").value||"").trim().toUpperCase();
-    if(!/^[A-Z]{4}$/.test(code)){ joinErr = "Enter the 4-letter code shown on the iPad."; render(); return; }
-    joinErr = ""; phoneJoin(code, +b.dataset.t); return;
-  }
   if(ROLE==="host"){
     if(a==="ask-new"){ $("#ng").innerHTML = `<span class="row"><span>End this game?</span><button class="bad" data-a="new-game">Yes, back to setup</button><button class="ghost" data-a="cancel-new">No</button></span>`; return; }
     if(a==="cancel-new"){ render(); return; }
+    if(a==="show-join"){ showJoin = true; render(); return; }
+    if(a==="hide-join"){ showJoin = false; render(); return; }
     if(a==="fix"){ act({a, o:b.dataset.o, i: i ?? -1}); return; }
-    act({a, i}); return;
+    act({a, i, t: b.dataset.t!==undefined ? +b.dataset.t : undefined}); return;
   }
   if(ROLE==="phone"){
     const s = V, O = 1-myTeam;
     if(a==="leave"){ lsDel(PREFIX+"phone"); try{ peer?.destroy(); }catch(x){} ROLE=null; V=null; render(); return; }
+    if(a==="set-name"){
+      const v = ($("#myname")?.value||"").trim().slice(0,20);
+      if(!v){ $("#err").textContent = "Type your name so your team can see you joined."; return; }
+      myName = v; lsSet(PREFIX+"me", {id:myId, name:myName}); arm(); hello(); render(); return;
+    }
+    if(a==="switch-team"){ myTeam = 1-myTeam; lsSet(PREFIX+"phone", {code:phoneCode, team:myTeam}); hello(); render(); return; }
     if(a==="pl-show"){ pl.step="show"; render(); return; }
     if(a==="pl-hide"){ pl.step="back"; render(); return; }
     if(a==="ready"){
@@ -741,22 +810,25 @@ document.addEventListener("input", e => {
   const el = e.target, k = el.dataset.in; if(!k) return;
   if(ROLE==="host" && S){
     if(k==="name"){ S.names[+el.dataset.t] = el.value.slice(0,16) || (el.dataset.t==="1"?"Torches":"Lanterns"); }
-    else if(k==="players"){ S.players[+el.dataset.t] = el.value; }
+    else if(k==="rname"){ const p = S.roster[+el.dataset.t][+el.dataset.i]; if(p) p.name = el.value.slice(0,20); }
     else if(k==="cfg"){ S.cfg[el.dataset.k] = el.dataset.k==="secs" ? +el.value : el.value; if(el.tagName==="SELECT"){ broadcast(); return; } }
     else if(k==="cfgb"){ S.cfg[el.dataset.k] = el.checked; }
     clearTimeout(window.__bt); window.__bt = setTimeout(broadcast, 400);
   }
   if(ROLE==="phone" && k==="trap" && V){ const O=1-myTeam; V.traps[O][+el.dataset.i] = el.value; sendTrap(O, +el.dataset.i, el.value); }
 });
+document.addEventListener("keydown", e => { if(e.key==="Enter" && e.target.id==="myname"){ e.preventDefault(); document.querySelector('[data-a="set-name"]')?.click(); } });
 document.addEventListener("change", e => { if(ROLE==="host" && e.target.dataset.in==="cfgb") broadcast(); });
 
 /* ============================================================ boot */
 (function boot(){
   const qs = new URLSearchParams(location.search);
-  const j = (qs.get("join")||"").toUpperCase(), t = qs.get("team");
-  if(/^[A-Z]{4}$/.test(j) && (t==="0"||t==="1")){ phoneJoin(j, +t); return; }
+  const j = (qs.get("join")||"").toLowerCase(), t = qs.get("team");
+  const ok = c => /^[a-z0-9]{4,16}$/.test(c||"");
+  if(ok(j) && (t==="0"||t==="1")){ phoneJoin(j, +t); return; }
+  if(j && !ok(j)) joinErr = "That QR code didn't look right. Scan it again from the iPad.";
   const ph = lsGet(PREFIX+"phone");
-  if(!j && ph && /^[A-Z]{4}$/.test(ph.code||"")){ phoneJoin(ph.code, ph.team===1?1:0); return; }
+  if(!j && ph && ok(ph.code)){ phoneJoin(ph.code, ph.team===1?1:0); return; }
   render();
 })();
 </script>
