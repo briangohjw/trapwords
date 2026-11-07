@@ -180,6 +180,18 @@ If no team advances, the monster moves closer. When it moves into a room with a 
 - **The table screen was closed or reloaded:** open the page again and tap **Resume the last game**.
 - **Someone is on the wrong team:** before the game starts, they can tap **Switch** on their phone.
 
----
+## Credits
 
-Based on the board game Trapwords by Czech Games Edition. The full rulebook is in `trapwords-rules-en.pdf`.
+This is an unofficial, non-commercial fan project. It isn't made by or affiliated with Czech Games Edition. If you enjoy it, please support the creators by buying the board game.
+
+**Trapwords** is published by Czech Games Edition (© 2018, czechgames.com).
+
+- **Game design:** Jan Březina, Martin Hrabálek, Michal Požárek
+- **Illustration:** Regis Torres, Dávid Jablonovský
+- **Art direction and layout:** Filip Murmak, Michaela Zaoralová
+- **Additional art:** Radim "Finder" Pech, František Sedláček
+- **Words and rulebook:** Jason Holt
+
+The rules in this guide are summarized from the official rulebook. The curses, extra monsters, word lists and phone features are this project's own house rules. They aren't part of the original game.
+
+This web version was made by Brian Goh ([briangohjw.com](https://briangohjw.com)).

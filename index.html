@@ -254,7 +254,7 @@ function paint(html){
   document.querySelectorAll("[data-qr]").forEach(el => { try{ new QRCode(el,{text:el.dataset.qr,width:150,height:150,colorDark:"#14161b",colorLight:"#ece3d0"}); }catch(e){ el.textContent=""; } });
   tickUI();
 }
-const CREDIT = `<div class="credit">Created by Brian Goh, <a href="https://briangohjw.com" target="_blank" rel="noopener">briangohjw.com</a></div>`;
+const CREDIT = `<div class="credit">Created by Brian Goh, <a href="https://briangohjw.com" target="_blank" rel="noopener">briangohjw.com</a><br>Unofficial fan version of <i>Trapwords</i> by Jan Březina, Martin Hrabálek and Michal Požárek, published by Czech Games Edition.</div>`;
 function render(){ const body = ROLE==="host" ? hostView() + (showJoin ? joinOverlay() : "") : ROLE==="phone" ? phoneView() : startView(); paint(body + CREDIT); }
 
 /* ============================================================ start screen */
