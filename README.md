@@ -11,6 +11,38 @@ Two teams race through a dungeon. Each round, your clue-giver tries to get your 
 - An internet connection for every device.
 - At least 2 players per team. Teams can be uneven.
 
+## How to run it
+
+The whole game is one file, `index.html`. There's nothing to install or build. You just have to put it at a web address that every device can open. Phones join by scanning a QR code that points to the same address as the table screen. So opening the file straight from your computer (a `file://` address) won't work for phones.
+
+Devices connect to each other through a free public connection service (PeerJS), so every device needs internet. They don't have to be on the same Wi-Fi.
+
+### Option 1: GitHub Pages (best for regular use)
+
+1. Push this folder to a GitHub repository.
+2. On GitHub, open the repository's **Settings > Pages**.
+3. Under **Build and deployment**, choose **Deploy from a branch**, pick your main branch and the `/ (root)` folder, then save.
+4. After a minute, GitHub shows the address, usually `https://<your-username>.github.io/<repository-name>/`.
+5. Open that address on the table screen.
+
+To update the game later, push the new `index.html` to the same branch. The site refreshes on its own.
+
+### Option 2: Any static host
+
+Upload `index.html` to any site that serves plain files, such as Netlify (drag and drop the folder at app.netlify.com/drop), Cloudflare Pages or your own web space. Open the address it gives you on the table screen.
+
+### Option 3: From your own computer, for a quick test
+
+Phones must be on the same Wi-Fi as the computer for this one. In a terminal, inside this folder:
+
+```bash
+python3 -m http.server 8000
+```
+
+Find your computer's local address. On a Mac, hold Option and click the Wi-Fi icon to see the "IP Address", for example `192.168.1.20`. Then open `http://192.168.1.20:8000` on the table screen, not `localhost`, so the QR codes point somewhere the phones can reach. Stop the server with Ctrl+C when you're done.
+
+A real https address (options 1 and 2) works best. Some phone features, like keeping the screen awake, only work over https.
+
 ## Starting a game
 
 1. On the table screen, open the page and tap **Host a new game**.
