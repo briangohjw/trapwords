@@ -701,7 +701,11 @@ function phoneConnect(){
   const c = peer.connect(PREFIX + phoneCode.toLowerCase(), {reliable:true});
   conn = c;
   c.on("open", () => { netState="on"; netMsg=""; hello(); render(); });
-  c.on("data", d => { if(d && d.type==="state"){ const prevPhase = V?.phase; V = d.s; phoneOnline = new Set(d.online||[]); if(V.phase==="run" && !V.turn.paused) localEnd = Date.now() + d.remain*1000; if(prevPhase!=="run" && V.phase==="run") beep(660,.12); render(); } });
+  c.on("data", d => { if(d && d.type==="state"){ const prevPhase = V?.phase, prevSig = phoneSig(V, phoneOnline); V = d.s; phoneOnline = new Set(d.online||[]); if(V.phase==="run" && !V.turn.paused) localEnd = Date.now() + d.remain*1000; if(prevPhase!=="run" && V.phase==="run") beep(660,.12);
+    keepLocalTraps();
+    // while teammates type traps, only the trap text changes: patch the boxes in place instead of redrawing the screen
+    if(V.phase==="traps" && prevPhase==="traps" && prevSig===phoneSig(V, phoneOnline) && patchTraps()) return;
+    render(); } });
   c.on("close", () => { if(conn===c){ netState="connecting"; netMsg="Reconnecting…"; render(); retryT = setTimeout(phoneConnect, 2000); } });
   c.on("error", () => {});
 }
@@ -709,7 +713,31 @@ let phoneOnline = new Set();
 function hello(){ try{ if(conn && conn.open) conn.send({type:"hello", team:myTeam, pid:myId, name:myName}); }catch(e){} }
 function send(a, extra={}){ try{ if(conn && conn.open) conn.send({type:"act", a, ...extra}); }catch(e){} }
 const trapTimers = {};
-function sendTrap(t,i,v){ clearTimeout(trapTimers[i]); trapTimers[i] = setTimeout(() => send("trap",{t,i,v}), 200); }
+function sendTrap(t,i,v){ pendTraps[i] = {v, at:Date.now(), key:trapKey()}; clearTimeout(trapTimers[i]); trapTimers[i] = setTimeout(() => send("trap",{t,i,v}), 120); }
+/* what this phone typed but the iPad hasn't echoed back yet. An incoming update can be older than our last keystrokes,
+   so for a short while our own text wins over it; otherwise letters would appear to vanish. */
+const pendTraps = {};
+const trapKey = () => V ? `${V.round}-${1-myTeam}` : "";
+function keepLocalTraps(){
+  if(!V || V.phase!=="traps") return;
+  const O = 1-myTeam, list = V.traps[O] || [], key = trapKey(), now = Date.now();
+  Object.keys(pendTraps).forEach(i => {
+    const p = pendTraps[i];
+    if(p.key!==key || now-p.at > 2000 || list[i]===p.v || i >= list.length) delete pendTraps[i];  // echoed, stale or new round
+    else list[i] = p.v;
+  });
+}
+/* everything on the phone screen except the trap text and the version counter */
+function phoneSig(s, online){ if(!s) return ""; return JSON.stringify({...s, v:0, traps:(s.traps||[]).map(a => a.length), online:[...(online||[])].sort()}); }
+function patchTraps(){
+  const O = 1-myTeam, list = V.traps[O] || [];
+  for(let i=0;i<list.length;i++){
+    const el = document.getElementById("tr"+i);
+    if(!el) return false;                       // screen isn't the trap editor: fall back to a full redraw
+    if(el !== document.activeElement && el.value !== list[i]) el.value = list[i];
+  }
+  return true;
+}
 function phoneRemain(){ const s=V; if(!s?.turn) return 0; if(s.phase!=="run"||s.turn.paused) return s.turn.remain; return Math.max(0,(localEnd-Date.now())/1000); }
 
 function phoneView(){
