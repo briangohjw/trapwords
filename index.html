@@ -132,9 +132,6 @@ details ul,details ol{padding-left:1.2em;margin:.5em 0 0;display:flex;flex-direc
 .overlay{position:fixed;inset:0;background:rgba(10,11,14,.88);z-index:20;display:flex;align-items:center;justify-content:center;
   padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .overlay .panel{max-width:720px;width:100%;max-height:100%;overflow:auto}
-.picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:560px}
-button.pickw{font-family:var(--f-display);font-size:clamp(1.5rem,6vw,2.1rem);padding:18px 10px;line-height:1.05;word-break:break-word;background:var(--slab)}
-button.pickw.on{background:var(--torch);color:#21160a;border-color:var(--torch-deep);box-shadow:0 0 18px rgba(233,162,59,.45)}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--dust);font-size:.9rem}
 @media (max-width:640px){ .room{min-height:110px;padding:7px} .room .n{font-size:1.6rem} .tok{width:28px;height:28px;font-size:.95rem} }
 </style>
@@ -142,29 +139,23 @@ button.pickw.on{background:var(--torch);color:#21160a;border-color:var(--torch-d
 <body>
 <div id="app"></div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 "use strict";
 /* ============================================================ data */
 const WORDS = {
-  fantasy: ["Goblin","Dragon","Wizard","Castle","Potion","Sword","Knight","Dungeon","Troll","Unicorn","Crown","Shield","Cauldron","Scroll","Tavern","Wand","Elf","Giant","Treasure","Spider","Skeleton","Ghost","Candle","Bridge","Forest","River","Horse","Bread","Cheese","Apple","Butter","Rope","Ladder","Key","Map","Chest","Mirror","Feather","Wolf","Bear","Owl","Raven","Snake","Frog","Mushroom","Moon","Star","Storm","Fire","Ice","Mountain","Cave","Tower","Gate","Bell","Coin","Ring","Necklace","Boots","Cloak","Hat","Beard","Horn","Arrow","Bow","Axe","Hammer","Anvil","Armor","Helmet","Banner","Throne","King","Queen","Princess","Witch","Spell","Fairy","Mermaid","Ship","Pirate","Island","Pig","Cow","Chicken","Egg","Milk","Honey","Soup","Pie","Carrot","Onion","Garden","Rose","Tree","Snow","Rain","Shadow","Bone","Tooth","Heart","Song","Harp","Drum","Book","Quill","Statue","Blacksmith","Bard","Catapult","Moat","Lantern","Broom","Cat","Goat","Sheep","Wheat","Mill","Well","Marsh","Swamp","Dwarf","Ogre","Phoenix","Griffin","Werewolf","Vampire","Zombie","Mummy","Jester","Thief","Monk","Priest","Feast","Barrel","Torch","Chain","Cage","Riddle","Prophecy","Amulet","Gem","Gold","Silver","Iron","Stone","Sand","Desert","Volcano","Thunder","Lightning","Wind","Spinning wheel","Lantern light","Mountain pass","Mushroom ring","Statue garden","Bridge troll","Giant spider","Unicorn horn","Bread knife","Feather bed","Frog prince","Owl feather","River troll","Swamp witch","Sword fight","Throne room","Torch light","Dragon egg","Ghost ship","Onion soup","Rose thorn","Wand maker","Well water","Wizard hat","Candle wax","Pie crust","Ship mast","Wasp nest","Wolf pack","Gem mine","Bow tie","Hat pin","Alchemist","Altar","Ambush","Apprentice","Archer","Armory","Arrowhead","Ash","Assassin","Avalanche","Badger","Bagpipe","Bandit","Banquet","Barbarian","Basilisk","Bat","Battlefield","Beacon","Beehive","Beetle","Bellows","Belt","Berry","Blade","Blizzard","Boar","Bonfire","Boulder","Bracelet","Bramble","Brew","Brewer","Bridle","Bucket","Buckle","Butcher","Butterfly","Candlestick","Canoe","Canyon","Captain","Caravan","Carpet","Cart","Catacomb","Cellar","Centaur","Chalice","Chandelier","Chapel","Chariot","Charm","Chimney","Cliff","Clock","Cobweb","Coffin","Comet","Compass","Cook","Coral","Courtyard","Crab","Cradle","Crossbow","Crow","Crypt","Crystal","Cupboard","Curse","Cyclops","Dagger","Dairy","Dawn","Deer","Den","Destiny","Dice","Ditch","Dove","Dragonfly","Drawbridge","Dream","Duel","Dusk","Eagle","Echo","Eclipse","Eel","Elixir","Ember","Emerald","Enchantress","Executioner","Falcon","Farmer","Fang","Fawn","Ferry","Fiddle","Field","Fig","Firefly","Fisherman","Flag","Flame","Flask","Fleet","Flint","Flood","Flute","Fog","Footprint","Fortress","Fountain","Fox","Frost","Fur","Gallows","Gargoyle","Garlic","Gauntlet","Genie","Glacier","Glove","Gnome","Goblet","Golem","Gong","Gossip","Grail","Grape","Grave","Graveyard","Guard","Guild","Hag","Hailstorm","Halberd","Harbor","Hare","Harvest","Hawk","Hay","Hearth","Hedgehog","Helm","Herald","Herb","Hermit","Hero","Hive","Hood","Hoof","Hourglass","Hunter","Hut","Hydra","Icicle","Idol","Imp","Ink","Inn","Invisibility","Ivy","Jail","Jewel","Journey","Juggler","Kettle","Kingdom","Kitchen","Knot","Kraken","Labyrinth","Lake","Lamb","Lance","Leather","Legend","Leprechaun","Lichen","Lighthouse","Lily","Lion","Lock","Loot","Lute","Mace","Magic","Maiden","Mane","Market","Mask","Mast","Maze","Meadow","Merchant","Meteor","Minotaur","Mist","Monastery","Moth","Mouse","Mud","Mule","Nest","Nightmare","Nymph","Oak","Oar","Oath","Oracle","Orb","Orchard","Otter","Outlaw","Oven","Owlbear","Ox","Paladin","Parchment","Peasant","Pearl","Pegasus","Pendant","Pepper","Pilgrim","Pillar","Pitchfork","Plague","Plow","Poison","Pond","Portal","Potato","Pouch","Prince","Prison","Puppet","Quest","Quiver","Rabbit","Raft","Rat","Realm","Reef","Relic","Rider","Robe","Rooftop","Ruby","Ruins","Rune","Rust","Saddle","Sage","Sail","Salt","Sapphire","Satchel","Sausage","Scale","Scarecrow","Scepter","Scythe","Seal","Serpent","Servant","Shepherd","Shipwreck","Shovel","Shrine","Siege","Sieve","Skull","Sleigh","Sling","Smoke","Snail","Soldier","Sorcerer","Spear","Spellbook","Spice","Spindle","Spirit","Spoon","Squire","Squirrel","Stable","Staff","Stag","Stew","Sting","Stork","Straw","Stream","Sun","Sunrise","Swan","Tail","Tapestry","Telescope","Temple","Tent","Thorn","Tide","Tiger","Toad","Tomb","Tongue","Tournament","Trap","Treaty","Trident","Troubadour","Trumpet","Tunnel","Turtle","Twilight","Valley","Vault","Village","Vine","Viper","Wagon","Wall","Wanderer","Warrior","Wasp","Waterfall","Wax","Weasel","Web","Whale","Whip","Whirlpool","Whistle","Wine","Wing","Winter","Wisdom","Wool","Worm","Wraith","Wreath","Yeti","Yoke","Abbey","Acorn","Antler","Apron","Arena","Badge","Ballad","Barn","Basket","Beak","Beggar","Blanket","Blood","Bloom","Boat","Bottle","Brick","Broth","Brush","Bubble","Bull","Cabbage","Cake","Camel","Cape","Carriage","Chalk","Cherry","Chess","Claw","Clover","Coal","Cobbler","Comb","Copper","Crowbar","Cucumber","Cup","Dandelion","Diamond","Dinner","Doorway","Duck","Dust","Ear","Earthquake","Fable","Fence","Fern","Fish","Flower","Forge","Furnace","Ginger","Glass","Glowworm","Goose","Gravy","Guitar","Hammock","Handkerchief","Harness","Heron","Honeycomb","Horseshoe","Iceberg","Jam","Jar","Kite","Knife","Lava","Leaf","Lemon","Lizard","Log","Lullaby","Magpie","Maple","Marble","Medal","Melon","Milkmaid","Mitten","Mole","Moss","Mustard","Nail","Needle","Net","Nut","Paint","Pan","Parrot","Peach","Pear","Pebble","Pillow","Pine","Pipe","Plum","Pot","Pumpkin","Puddle","Quilt","Rainbow","Ram","Rattle","Reindeer","Roof","Root","Sack","Scarf","Scissors","Seagull","Seed","Shell","Silk","Sock","Spring","Stairs","Stocking","Strawberry","String","Sugar","Sundial","Tea","Thimble","Thread","Tin","Toast","Towel","Toy","Treehouse","Tulip","Umbrella","Vase","Walnut","Wheel","Wig","Windmill"],
-  normal: ["Toaster","Baseball","Phone","Computer","Car","Bus","Train","Airplane","Camera","Television","Guitar","Piano","Pizza","Hamburger","Sushi","Coffee","Chocolate","Ice cream","Umbrella","Backpack","Bicycle","Helicopter","Rocket","Astronaut","Robot","Doctor","Teacher","Police","Firefighter","Hospital","School","Library","Airport","Supermarket","Cinema","Beach","Swimming pool","Football","Basketball","Tennis","Golf","Yoga","Gym","Laptop","Keyboard","Headphones","Battery","Lightbulb","Fridge","Microwave","Washing machine","Vacuum","Sofa","Bed","Pillow","Blanket","Shower","Toothbrush","Soap","Towel","Glasses","Watch","Wallet","Passport","Ticket","Money","Newspaper","Magazine","Podcast","Video game","Internet","Email","Password","Selfie","Birthday","Wedding","Holiday","Sunscreen","Sunglasses","Taxi","Traffic","Skyscraper","Elevator","Escalator","Zoo","Giraffe","Penguin","Kangaroo","Elephant","Lion","Monkey","Shark","Dolphin","Octopus","Banana","Pineapple","Durian","Noodles","Rice","Chopsticks","Spoon","Fork","Plate","Cup","Bottle","Balloon","Fireworks","Earthquake","Rainbow","Tornado","Jungle","Snowman","Sandcastle","Tent","Campfire","Compass","Telescope","Microscope","Magnet","Scissors","Glue","Pencil","Eraser","Calculator","Clock","Alarm","Calendar","Envelope","Stamp","Gift","Pajamas","Sneakers","Jeans","Tie","Lipstick","Perfume","Haircut","Dentist","Pharmacy","Bakery","Restaurant","Waiter","Chef","Menu","Receipt","Shopping cart","Parking","Motorcycle","Submarine","Satellite","Planet","Dinosaur","Volcano","Hamster","Parrot","Goldfish","Air conditioner","Hot air balloon","Pressure cooker","Vending machine","Remote control","Roller coaster","Fortune cookie","Shopping mall","Traffic light","Library card","Pillow fight","Sleeping bag","Stock market","Cotton candy","French fries","Night market","Selfie stick","Swimming cap","Water bottle","Wedding cake","Bell pepper","Credit card","Gas station","Piano tuner","Bubble wrap","Coffee shop","Dance floor","Paper plane","Photo booth","Rice cooker","Rubber duck","Sticky note","Water slide","Wrist watch","Bubble tea","Polar bear","Teddy bear","Fire alarm","Phone case","Power bank","Sand timer","Toll booth","Zoo keeper","Road trip","Gift card","Road sign","Car wash","Lunchbox","Pet shop","Hot dog","Jet lag","Accordion","Actor","Advertisement","Airbag","Album","Alien","Allergy","Ambulance","Anchor","Ant","Antenna","App","Apron","Aquarium","Architect","Armchair","Artist","Asteroid","Athlete","Attic","Audience","Avocado","Baby","Bacon","Badminton","Bagel","Ballet","Bandage","Bank","Barbecue","Barber","Bathtub","Beard","Bee","Beer","Belt","Bench","Bikini","Billboard","Binoculars","Biscuit","Blender","Blog","Blueberry","Bodyguard","Bookshelf","Boomerang","Boss","Bowling","Boxing","Brain","Bread","Breakfast","Bride","Briefcase","Broccoli","Brownie","Bucket","Budget","Buffet","Bulldozer","Burrito","Butterfly","Button","Cabbage","Cactus","Cafe","Cake","Camping","Canal","Candle","Cannon","Canoe","Captain","Caravan","Cardboard","Carnival","Carpet","Carrot","Cartoon","Cash","Casino","Castle","Caterpillar","Cathedral","Cave","Ceiling","Cello","Cereal","Chair","Champagne","Charger","Cheerleader","Cheese","Cheetah","Chess","Chicken","Chili","Chimney","Choir","Cigarette","Circus","Citizen","Classroom","Cliff","Climber","Closet","Cloud","Clown","Coach","Coconut","Coin","Comedian","Comic","Concert","Cookie","Coral","Corn","Couch","Coupon","Cowboy","Crab","Crane","Crayon","Cricket","Crocodile","Crossword","Crown","Cruise","Cucumber","Cupcake","Curry","Curtain","Cushion","Customer","Dance","Darts","Deadline","Deer","Delivery","Desert","Desk","Detective","Diamond","Diaper","Diary","Diet","Dishwasher","Diver","Dog","Doll","Donut","Doorbell","Dragon","Drill","Drone","Drummer","Duck","Dumpling","Dust","Eagle","Earring","Easter","Egg","Election","Electricity","Emoji","Engine","Engineer","Exam","Factory","Fan","Farm","Farmer","Fashion","Fence","Ferry","Festival","Fever","Fingerprint","Fireplace","Fish","Fishing","Flag","Flamingo","Flashlight","Flight","Flood","Flower","Flute","Fog","Fountain","Fox","Frog","Funeral","Furniture","Garage","Garden","Garlic","Ghost","Gingerbread","Glove","Goal","Goat","Gorilla","Graduation","Grandmother","Grapes","Grass","Guitarist","Hammer","Hammock","Handbag","Harbor","Harmonica","Hat","Hedgehog","Helmet","Highway","Hiking","Hippo","Hockey","Honey","Horse","Hose","Hotel","Hurricane","Igloo","Influencer","Ink","Insurance","Interview","Island","Jacket","Jam","Jazz","Jellyfish","Jewelry","Jigsaw","Job","Juggler","Juice","Kayak","Ketchup","Kettle","Key","Kindergarten","King","Kitchen","Kite","Kitten","Knife","Koala","Ladder","Lake","Lamp","Lasagna","Lawyer","Leaf","Lemon","Lemonade","Lifeguard","Lighthouse","Lizard","Lobster","Lock","Lollipop","Luggage","Lunch","Magician","Mailbox","Makeup","Mango","Map","Marathon","Market","Mask","Mattress","Mayor","Meme","Mermaid","Meteor","Microphone","Milkshake","Mirror","Mobile","Mosquito","Moon","Mop","Mosque","Motel","Mountain","Mouse","Movie","Muffin","Museum","Mushroom","Music","Nail","Napkin","Necklace","Neighbour","Nest","Ninja","Notebook","Nurse","Ocean","Office","Olive","Omelette","Onion","Orange","Orchestra","Ostrich","Oven","Owl","Painter","Pancake","Panda","Parachute","Parade","Park","Party","Pasta","Peacock","Peanut","Pear","Pen","Pepper","Photographer","Picnic","Pig","Pigeon","Pilot","Pirate","Plumber","Pocket","Poetry","Politician","Popcorn","Postcard","Poster","Potato","Pregnancy","President","Prince","Printer","Prison","Pumpkin","Puppet","Puppy","Puzzle","Pyramid","Queue","Rabbit","Raccoon","Radio","Rain","Raincoat","Recipe","Referee","Refrigerator","Reptile","Rhino","Ring","River","Roof","Rooster","Rose","Runway","Salad","Salt","Sandwich","Santa","Sauna","Sausage","Saxophone","Scarf","Scientist","Scooter","Scorpion","Sea","Seal","Seatbelt","Shampoo","Sheep","Shell","Ship","Shirt","Shoe","Shop","Singer","Sink","Skateboard","Skeleton","Ski","Skirt","Skunk","Slide","Slipper","Smartphone","Smoke","Snail","Snake","Snorkel","Snow","Soccer","Sock","Soldier","Soup","Spaghetti","Spider","Sponge","Spy","Squirrel","Stadium","Stage","Stapler","Statue","Steak","Stethoscope","Storm","Stove","Strawberry","Student","Subway","Suitcase","Sunflower","Sunset","Superhero","Surfer","Surgeon","Swan","Sweater","Swing","Sword","Syrup","Table","Taco","Tattoo","Tea","Teenager","Temple","Tiger","Toilet","Tomato","Tongue","Toothpaste","Torch","Tortoise","Tourist","Tower","Toy","Tractor","Trampoline","Treasure","Tree","Truck","Trumpet","Tuna","Tunnel","Turkey","Turtle","Tuxedo","Twins","Typewriter","Unicorn","Uniform","University","Vacation","Vampire","Van","Vase","Vegetable","Violin","Volleyball","Volunteer","Waffle","Wallpaper","Walrus","Wardrobe","Wasp","Water","Waterfall","Watermelon","Wave","Webcam","Whale","Wheelchair","Whistle","Wi-Fi","Wig","Wind","Window","Wine","Winter","Wizard","Wolf","Worm","Wrestling","Yacht","Yogurt","Zebra","Zipper","Karaoke","Tissue","Treadmill"]
+  fantasy: ["Goblin","Dragon","Wizard","Castle","Potion","Sword","Knight","Dungeon","Troll","Unicorn","Crown","Shield","Cauldron","Scroll","Tavern","Wand","Elf","Giant","Treasure","Spider","Skeleton","Ghost","Candle","Bridge","Forest","River","Horse","Bread","Cheese","Apple","Butter","Rope","Ladder","Key","Map","Chest","Mirror","Feather","Wolf","Bear","Owl","Raven","Snake","Frog","Mushroom","Moon","Star","Storm","Fire","Ice","Mountain","Cave","Tower","Gate","Bell","Coin","Ring","Necklace","Boots","Cloak","Hat","Beard","Horn","Arrow","Bow","Axe","Hammer","Anvil","Armor","Helmet","Banner","Throne","King","Queen","Princess","Witch","Spell","Fairy","Mermaid","Ship","Pirate","Island","Pig","Cow","Chicken","Egg","Milk","Honey","Soup","Pie","Carrot","Onion","Garden","Rose","Tree","Snow","Rain","Shadow","Bone","Tooth","Heart","Song","Harp","Drum","Book","Quill","Statue","Blacksmith","Bard","Catapult","Moat","Lantern","Broom","Cat","Goat","Sheep","Wheat","Mill","Well","Marsh","Swamp","Dwarf","Ogre","Phoenix","Griffin","Werewolf","Vampire","Zombie","Mummy","Jester","Thief","Monk","Priest","Feast","Barrel","Torch","Chain","Cage","Riddle","Prophecy","Amulet","Gem","Gold","Silver","Iron","Stone","Sand","Desert","Volcano","Thunder","Lightning","Wind"],
+  normal: ["Toaster","Baseball","Phone","Computer","Car","Bus","Train","Airplane","Camera","Television","Guitar","Piano","Pizza","Hamburger","Sushi","Coffee","Chocolate","Ice cream","Umbrella","Backpack","Bicycle","Helicopter","Rocket","Astronaut","Robot","Doctor","Teacher","Police","Firefighter","Hospital","School","Library","Airport","Supermarket","Cinema","Beach","Swimming pool","Football","Basketball","Tennis","Golf","Yoga","Gym","Laptop","Keyboard","Headphones","Battery","Lightbulb","Fridge","Microwave","Washing machine","Vacuum","Sofa","Bed","Pillow","Blanket","Shower","Toothbrush","Soap","Towel","Glasses","Watch","Wallet","Passport","Ticket","Money","Newspaper","Magazine","Podcast","Video game","Internet","Email","Password","Selfie","Birthday","Wedding","Holiday","Sunscreen","Sunglasses","Taxi","Traffic","Skyscraper","Elevator","Escalator","Zoo","Giraffe","Penguin","Kangaroo","Elephant","Lion","Monkey","Shark","Dolphin","Octopus","Banana","Pineapple","Durian","Noodles","Rice","Chopsticks","Spoon","Fork","Plate","Cup","Bottle","Balloon","Fireworks","Earthquake","Rainbow","Tornado","Jungle","Snowman","Sandcastle","Tent","Campfire","Compass","Telescope","Microscope","Magnet","Scissors","Glue","Pencil","Eraser","Calculator","Clock","Alarm","Calendar","Envelope","Stamp","Gift","Pajamas","Sneakers","Jeans","Tie","Lipstick","Perfume","Haircut","Dentist","Pharmacy","Bakery","Restaurant","Waiter","Chef","Menu","Receipt","Shopping cart","Parking","Motorcycle","Submarine","Satellite","Planet","Dinosaur","Volcano","Hamster","Parrot","Goldfish"]
 };
-/* one mixed pool, so rounds never share a theme */
-const ALL_WORDS = [...new Map([...WORDS.fantasy, ...WORDS.normal].map(w => [w.toLowerCase(), w])).values()];
-/* House-rule curses that change how you have to think about clues; some also change the numbers (extraTraps, guesses, timeMult). */
+/* curse texts paraphrased from the rulebook's "Notes on selected curses" */
 const CURSES = {
-  negation:{name:"Not That",text:"You may only say what it is NOT. “Not something you eat.” “You wouldn't bring it to a wedding.”"},
-  onesyllable:{name:"One Syllable",text:"Every word you say must be one syllable. “Big gray beast with a long nose” is fine; “elephant-like animal” is not."},
-  hexedink:{name:"Hexed Ink",extraTraps:2,text:"The other team writes 2 extra trapwords against you."},
-  dimsight:{name:"Dim Sight",guesses:3,text:"Your team gets only 3 guesses instead of 5."},
-  suddendeath:{name:"Sudden Death",guesses:1,text:"Your team gets only 1 guess. Be sure before anyone speaks."},
-  cracked:{name:"Cracked Hourglass",timeMult:0.5,text:"Half the usual time on the timer."},
-  snare:{name:"Snare",text:"Traps catch your guessers too: if anyone on your team guesses one of the trapwords, your turn ends."}
+  flood:{name:"Flood",text:"Breathe normally while thinking of a clue. Then take a deep breath and give clues while holding it. Hold, clue, hold, clue... but once you inhale, even a tiny bit, you can give no more clues."},
+  petrification:{name:"Petrification",text:"Once a teammate makes a guess, the clue-giver must freeze in a rigid pose, as if turned to stone."},
+  echo:{name:"Echo",text:"The clue-giver must make a good-faith effort to echo every word they say. The other team should cut them a little slack; perfection isn't required."},
+  feeblemind:{name:"Feeblemind",text:"The clue-giver can't use pronouns like “I” or “it”. Good luck!"}
 };
 const CURSE_IDS = Object.keys(CURSES);
-const cursesOn = (s,t) => [...(s.active?.[t]||[]), ...(s.battle?.[t] ? (s.monsterCurses?.[t]||[]) : [])].map(id => CURSES[id]).filter(Boolean);
 const MONSTERS = {
   mummy:{name:"Mummy",official:true,text:"Draw a new curse for each round against the Mummy.",curses:1},
   mummy2:{name:"Mummy (nastier)",official:true,text:"Two curses at once for each round against the Mummy.",curses:2},
@@ -191,10 +182,9 @@ const norm = s => String(s||"").trim().toLowerCase();
 /* ============================================================ shared view helpers (use a state object s) */
 const tname = (s,t) => `<span class="${tcls(t)}">${esc(s.names[t])}</span>`;
 const playerList = (s,t) => ((s.roster && s.roster[t]) || []).map(p => String(p.name||"").trim()).filter(Boolean);
-const giverPlayer = (s,t) => { const l = ((s.roster && s.roster[t]) || []).filter(p => String(p.name||"").trim()); return l.length ? l[s.torch[t] % l.length] : null; };
-const clueGiver = (s,t) => { const p = giverPlayer(s,t); return p ? String(p.name).trim() : ""; };
+const clueGiver = (s,t) => { const l = playerList(s,t); return l.length ? l[s.torch[t] % l.length] : ""; };
 const monsterOf = s => { const m = MONSTERS[s.cfg.monster] || MONSTERS.mummy; return s.cfg.monster==="custom" ? {...m, text: s.cfg.customRule || "No special rule entered."} : m; };
-const guessLimit = (s,t) => Math.min((s.battle && s.battle[t] && monsterOf(s).guesses) || MAX_GUESSES, ...cursesOn(s,t).map(c => c.guesses || MAX_GUESSES));
+const guessLimit = (s,t) => (s.battle && s.battle[t] && monsterOf(s).guesses) || MAX_GUESSES;
 function rulesFor(s,t){
   let h = "";
   (s.active?.[t]||[]).forEach(id => { const c=CURSES[id]; h += `<div class="rule"><b>Curse: ${esc(c.name)}</b>${esc(c.text)}</div>`; });
@@ -228,9 +218,11 @@ const RULES_HELP = `<details><summary>Legal traps &amp; clues (rulebook pp. 10&n
 let ROLE = null;            // "host" | "phone"
 let S = null;               // host: authoritative state
 let V = null;               // phone: last received state
-let peer = null;
-const conns = new Map();    // host: conn -> {team, pid}
-let conn = null, myTeam = 0, myName = "", myId = "", phoneCode = "", netState = "connecting", netMsg = "", showJoin = false;
+/* realtime relay: Supabase Realtime broadcast + presence, one channel per game */
+const SB_URL = "https://ddmwzowlovvfcztkinuf.supabase.co";
+const SB_KEY = "sb_publishable_qW1kc8wPVdNtB_c0x3gYlg_N3yFAQdm";
+let sb = null, chan = null, chanOK = false, presence = [];
+let myTeam = 0, myName = "", myId = "", phoneCode = "", netState = "connecting", netMsg = "", showJoin = false;
 let localEnd = 0;           // phone: local clock end time for the running timer
 let pl = {key:"", step:"give"}; // phone-local step for the book hand-off
 let joinErr = "";
@@ -245,8 +237,7 @@ function beep(f=880,d=.12,v=.2){ if(!actx) return; try{ const o=actx.createOscil
 
 /* ============================================================ painting */
 function paint(html){
-  // only text fields get focus back after a redraw; refocusing a <select> reopens its picker on iPad/iPhone
-  const a = document.activeElement, id = a && (a.tagName==="INPUT" && a.type!=="checkbox" || a.tagName==="TEXTAREA") ? a.id : "";
+  const a = document.activeElement, id = a && a.id;
   let val, ss, se;
   if(id && (a.tagName==="INPUT"||a.tagName==="TEXTAREA")){ val=a.value; try{ ss=a.selectionStart; se=a.selectionEnd; }catch(e){} }
   $("#app").innerHTML = html;
@@ -254,7 +245,7 @@ function paint(html){
   document.querySelectorAll("[data-qr]").forEach(el => { try{ new QRCode(el,{text:el.dataset.qr,width:150,height:150,colorDark:"#14161b",colorLight:"#ece3d0"}); }catch(e){ el.textContent=""; } });
   tickUI();
 }
-const CREDIT = `<div class="credit">Created by Brian Goh, <a href="https://briangohjw.com" target="_blank" rel="noopener">briangohjw.com</a><br>Unofficial fan version of <i>Trapwords</i> by Jan Březina, Martin Hrabálek and Michal Požárek, published by Czech Games Edition.</div>`;
+const CREDIT = `<div class="credit">Created by Brian Goh, <a href="https://briangohjw.com" target="_blank" rel="noopener">briangohjw.com</a></div>`;
 function render(){ const body = ROLE==="host" ? hostView() + (showJoin ? joinOverlay() : "") : ROLE==="phone" ? phoneView() : startView(); paint(body + CREDIT); }
 
 /* ============================================================ start screen */
@@ -280,10 +271,10 @@ function newCode(){ const L="abcdefghjkmnpqrstuvwxyz23456789"; let c=""; for(let
 const newId = () => Math.random().toString(36).slice(2,10);
 function freshState(code, keep){
   return { code, phase:"setup",
-    cfg: keep?.cfg || {secs:60, layout:"std", curses:true, monster:"mummy", customRule:"", tiebreak:false},
-    names: keep?.names || ["Cats","Rats"], roster: keep?.roster || [[],[]],
+    cfg: keep?.cfg || {secs:60, words:"fantasy", layout:"std", curses:true, monster:"mummy", customRule:"", tiebreak:false},
+    names: keep?.names || ["Lanterns","Torches"], roster: keep?.roster || [[],[]],
     rooms: LAYOUTS.std, pos:[0,0], monsterIdx:4, curses:[], torch:[0,0], round:1, glowStart:0,
-    used:[], words:["",""], options:[[],[]], pickSel:[-1,-1], picked:[false,false], traps:[[],[]], ready:[false,false], battle:[false,false], active:[[],[]], monsterCurses:[[],[]],
+    used:[], words:["",""], traps:[[],[]], ready:[false,false], battle:[false,false], active:[[],[]], monsterCurses:[[],[]],
     order:[0,1], turnIdx:0, turn:null, results:[null,null], usedTime:[null,null], notes:[], log:[], winners:[], monsterWon:false, v:0 };
 }
 function saveHost(){ lsSet(PREFIX+"host", S); }
@@ -302,37 +293,28 @@ function startGame(){
   startRound();
 }
 function drawWord(){
-  const list = ALL_WORDS;
-  // avoid words from this game, and (remembered on this iPad) words shown in recent games
-  const recent = new Set(lsGet(PREFIX+"recent") || []);
-  let pool = list.filter(w => !S.used.includes(w) && !recent.has(w));
-  if(!pool.length){ lsDel(PREFIX+"recent"); pool = list.filter(w => !S.used.includes(w)); }
-  const w = pick(pool.length ? pool : list); S.used.push(w);
-  const r = [...recent, w]; lsSet(PREFIX+"recent", r.slice(-Math.floor(list.length*0.75)));
-  return w;
+  const list = WORDS[S.cfg.words] || WORDS.fantasy;
+  const pool = list.filter(w => !S.used.includes(w));
+  const w = pick(pool.length ? pool : list); S.used.push(w); return w;
 }
 function startRound(){
   S.battle = [0,1].map(t => S.pos[t]===S.monsterIdx);
-  // options[t] = 4 candidate words for team t, chosen (and confirmed) by the other team before traps
-  S.options = [0,1].map(() => [drawWord(), drawWord(), drawWord(), drawWord()]);
-  S.pickSel = [-1,-1]; S.picked = [false,false];
-  S.words = ["",""];                                          // words[t] = the word team t must guess
+  S.words = [drawWord(), drawWord()];                         // words[t] = the word team t must guess
+  S.traps = [0,1].map(t => Array(S.rooms[S.pos[t]]).fill("")); // traps against team t = number on team t's room
   S.ready = [false,false];                                    // ready[t] = traps against t are done
   S.results = [null,null]; S.usedTime=[null,null];
   S.active = [[],[]];
   S.curses.forEach(c => [0,1].forEach(t => { if(c.idx===S.pos[t]){ c.revealed = true; S.active[t].push(c.id); } }));
   const m = monsterOf(S);
   S.monsterCurses = [0,1].map(t => S.battle[t] && m.curses ? shuffle(CURSE_IDS).slice(0,m.curses) : []);
-  // traps against team t = number on team t's room, plus any extra a curse on t demands
-  S.traps = [0,1].map(t => Array(S.rooms[S.pos[t]] + cursesOn(S,t).reduce((n,c) => n + (c.extraTraps||0), 0)).fill(""));
   // who goes first: team behind; if level, the team receiving the glowing book (alternates each round)
   if(S.pos[0] !== S.pos[1]) S.order = S.pos[0] < S.pos[1] ? [0,1] : [1,0];
   else { const g = (S.glowStart + S.round - 1) % 2; S.order = [g, 1-g]; }
-  S.turnIdx = 0; S.turn = null; S.phase = "pick";
+  S.turnIdx = 0; S.turn = null; S.phase = "traps";
 }
 function beginTurn(){
   const d = S.order[S.turnIdx];
-  let limit = Math.max(10, Math.round(S.cfg.secs * cursesOn(S,d).reduce((x,c) => x * (c.timeMult||1), 1)));
+  let limit = S.cfg.secs;
   const first = S.order[0];
   if(S.cfg.tiebreak && S.battle[0] && S.battle[1] && S.turnIdx===1 && S.results[first]===true)
     limit = Math.max(1, Math.round(S.usedTime[first]));       // alternative tiebreaker (p.9)
@@ -390,24 +372,12 @@ function endRound(){
 }
 
 /* actions: from host UI or from phones (fromTeam set) */
-const TEAM_ACTS = new Set(["pick-sel","pick","trap","ready"]);
 const HOST_ONLY = new Set(["add-player","rm-player","up-player","start-game","fix","continue","next-round","pause","new-game","host-correct","host-fail","back-setup"]);
 function act(m, fromTeam){
   if(!S) return;
   const a = m.a;
   if(fromTeam!==undefined && HOST_ONLY.has(a)) return;
-  if(TEAM_ACTS.has(a)){                                       // only the other team may pick words / set traps against team t
-    if(m.t!==0 && m.t!==1) return;
-    if(fromTeam!==undefined && fromTeam!==1-m.t) return;
-  }
   switch(a){
-    case "pick-sel": if(S.phase==="pick" && !S.picked[m.t] && Number.isInteger(m.i) && m.i>=0 && m.i<S.options[m.t].length) S.pickSel[m.t] = m.i; break;
-    case "pick":
-      if(S.phase!=="pick") break;
-      if(m.on){ if(S.pickSel[m.t]<0) break; S.words[m.t] = S.options[m.t][S.pickSel[m.t]]; S.picked[m.t] = true; }
-      else S.picked[m.t] = false;
-      if(S.picked[0] && S.picked[1]) S.phase = "traps";
-      break;
     case "add-player": S.roster[m.t].push({id:newId(), name:"", phone:false}); break;
     case "rm-player": S.roster[m.t].splice(m.i,1); break;
     case "up-player": if(m.i>0){ const r=S.roster[m.t]; [r[m.i-1],r[m.i]]=[r[m.i],r[m.i-1]]; } break;
@@ -452,48 +422,47 @@ function hostStart(code, resume){
   ROLE = "host";
   S = resume || freshState(code);
   if(!Array.isArray(S.roster)) S.roster = [[],[]];
-  if(!Array.isArray(S.options)) S.options = [[],[]];
-  if(!Array.isArray(S.pickSel)) S.pickSel = [-1,-1];
-  if(!Array.isArray(S.picked)) S.picked = [false,false];
-  // drop curses that no longer exist (older saved games)
-  S.curses = (S.curses||[]).filter(c => CURSES[c.id]);
-  S.active = (S.active||[[],[]]).map(a => a.filter(id => CURSES[id]));
-  S.monsterCurses = (S.monsterCurses||[[],[]]).map(a => a.filter(id => CURSES[id]));
   saveHost(); render();
-  connectHost(S.code, 0);
+  connectHost(S.code);
 }
-function connectHost(code, attempt){
-  if(typeof Peer === "undefined"){ netState="error"; netMsg="Couldn't load the connection library. Check the internet connection and reload."; render(); return; }
+function sbClient(){
+  if(sb) return sb;
+  if(!window.supabase || !window.supabase.createClient) return null;
+  sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{persistSession:false, autoRefreshToken:false, detectSessionInUrl:false}, realtime:{params:{eventsPerSecond:30}}});
+  return sb;
+}
+function closeChannel(){ if(chan && sb){ try{ sb.removeChannel(chan); }catch(e){} } chan = null; chanOK = false; presence = []; }
+function openChannel(code, key, meta, onMsg, onReady){
+  const c = sbClient();
+  if(!c){ netState="error"; netMsg="Couldn't load the connection library. Check the internet connection and reload."; render(); return; }
+  closeChannel();
+  const ch = c.channel("trapwords-" + code, {config:{broadcast:{self:false, ack:false}, presence:{key}}});
+  ch.on("broadcast", {event:"m"}, ({payload}) => { if(payload && typeof payload==="object") onMsg(payload); });
+  ch.on("presence", {event:"sync"}, () => {
+    const st = ch.presenceState(); presence = [];
+    Object.values(st).forEach(metas => { const m = metas[metas.length-1]; if(m) presence.push(m); });
+    render();
+  });
+  ch.subscribe(async status => {
+    if(ch!==chan) return;
+    if(status==="SUBSCRIBED"){ chanOK = true; netState="on"; netMsg=""; try{ await ch.track(meta()); }catch(e){} onReady(); }
+    else { chanOK = false; netState = status==="CLOSED" ? "connecting" : "error";
+      netMsg = status==="TIMED_OUT" ? "Connection timed out. Retrying…" : status==="CHANNEL_ERROR" ? "Connection problem. Retrying…" : "Reconnecting…"; }
+    render();
+  });
+  chan = ch;
+}
+function chanSend(payload){ if(!chan || !chanOK) return; try{ chan.send({type:"broadcast", event:"m", payload}); }catch(e){} }
+function connectHost(code){
   netState = "connecting"; netMsg = ""; render();
-  peer = new Peer(PREFIX + code.toLowerCase(), {debug:0});
-  peer.on("open", () => { netState = "on"; netMsg = ""; render(); });
-  peer.on("connection", c => {
-    c.on("open", () => { conns.set(c, null); sendState(c); render(); });
-    c.on("data", d => {
-      if(!d || typeof d!=="object") return;
-      if(d.type==="hello"){
-        const team = d.team===1 ? 1 : 0, pid = String(d.pid||"").slice(0,20), name = String(d.name||"").trim().slice(0,20);
-        conns.set(c, {team, pid});
-        if(pid && name) upsertPlayer(pid, name, team);
-        broadcast();
-      }
-      else if(d.type==="act"){ const info = conns.get(c); act(d, info ? info.team : 0); }
-    });
-    c.on("close", () => { conns.delete(c); broadcast(); });
-    c.on("error", () => { conns.delete(c); broadcast(); });
-  });
-  peer.on("disconnected", () => { netState="connecting"; render(); try{ peer.reconnect(); }catch(e){} });
-  peer.on("error", e => {
-    if(e.type==="unavailable-id"){        // usually the old tab is still holding the code after a reload
-      netState="connecting"; netMsg="Reclaiming room code…"; render();
-      try{ peer.destroy(); }catch(x){}
-      setTimeout(() => connectHost(code, attempt+1), Math.min(2000+attempt*1000, 8000));
-    } else if(["network","server-error","socket-error","socket-closed"].includes(e.type)){
-      netState="error"; netMsg="Lost the connection server. Retrying…"; render();
-      try{ peer.destroy(); }catch(x){}
-      setTimeout(() => connectHost(code, attempt+1), 3000);
+  openChannel(code, "host", () => ({host:true}), d => {
+    if(d.type==="hello"){
+      const team = d.team===1 ? 1 : 0, pid = String(d.pid||"").slice(0,20), name = String(d.name||"").trim().slice(0,20);
+      if(pid && name) upsertPlayer(pid, name, team);
+      broadcast();
     }
-  });
+    else if(d.type==="act"){ act(d, d.from===1 ? 1 : 0); }
+  }, () => broadcast());
 }
 function upsertPlayer(pid, name, team){
   let found = null;
@@ -501,31 +470,13 @@ function upsertPlayer(pid, name, team){
   if(found){ found.name = name; if(!S.roster[team].includes(found)) S.roster[team].push(found); }
   else S.roster[team].push({id:pid, name, phone:true});
 }
-function onlineIds(){ const set = new Set(); conns.forEach(v => { if(v && v.pid) set.add(v.pid); }); return set; }
-/* Each phone only receives what its player may know: a team never gets its own word options, word or the traps
-   against it, except the current clue-giver, who gets the word during their own turn. Everything is revealed once a turn ends. */
-function viewFor(info){
-  const s = structuredClone(S), T = info ? info.team : -1;
-  s.used = [];
-  if(["setup","roundEnd","over"].includes(S.phase)) return s;
-  [0,1].forEach(t => {
-    if(T!==-1 && t!==T) return;
-    if(S.results[t]!==null || (S.phase==="result" && S.turn?.d===t)) return;
-    const giverSees = (S.phase==="read"||S.phase==="run") && S.turn?.d===t && info && giverPlayer(S,t)?.id===info.pid;
-    if(!giverSees) s.words[t] = "";
-    s.options[t] = [];
-    s.traps[t] = (S.traps[t]||[]).map(() => "");
-  });
-  return s;
-}
-function stateMsg(info){ return {type:"state", s:viewFor(info), remain:remainNow(), online:[...onlineIds()]}; }
-function sendState(c){ try{ if(c.open) c.send(stateMsg(conns.get(c))); }catch(e){} }
-function sendAll(){ conns.forEach((_,c) => sendState(c)); }
-function broadcast(){ S.v++; saveHost(); sendAll(); render(); }
+function onlineIds(){ return new Set(presence.filter(m => m.pid).map(m => m.pid)); }
+function stateMsg(){ return {type:"state", s:S, remain:remainNow()}; }
+function broadcast(){ S.v++; saveHost(); chanSend(stateMsg()); render(); }
 
 /* ============================================================ HOST: views */
 function teamStatusPills(){
-  const counts=[0,0]; conns.forEach(v => { if(v && (v.team===0||v.team===1)) counts[v.team]++; });
+  const counts=[0,0]; presence.forEach(m => { if(m.pid && (m.team===0||m.team===1)) counts[m.team]++; });
   return [0,1].map(t => `<span class="pill ${counts[t]?'done':''}">${esc(S.names[t])}: ${counts[t]} phone${counts[t]===1?"":"s"}</span>`).join("");
 }
 function roomViewer(){
@@ -577,6 +528,8 @@ function hostView(){
       </div>`).join("")}</div>
     <div class="panel">
       <div class="grid2">
+        <div class="field"><label class="label" for="cfg-words">word set (p.4)</label><select id="cfg-words" data-in="cfg" data-k="words">
+          <option value="fantasy" ${c.words==="fantasy"?"selected":""}>Fantasy</option><option value="normal" ${c.words==="normal"?"selected":""}>Not fantasy</option></select></div>
         <div class="field"><label class="label" for="cfg-layout">rooms (p.2&ndash;3)</label><select id="cfg-layout" data-in="cfg" data-k="layout">
           <option value="std" ${c.layout==="std"?"selected":""}>Recommended: 3, 4, 5, 6, 7 (2 curses)</option><option value="alt" ${c.layout==="alt"?"selected":""}>Alternative: 2, 4, 6, 8, 10 (curses in first 4 rooms)</option></select></div>
         <div class="field"><label class="label" for="cfg-monster">monster</label><select id="cfg-monster" data-in="cfg" data-k="monster">
@@ -593,31 +546,22 @@ function hostView(){
     </div>
     <div class="foot">${netLine()}</div>`;
   }
-  if(s.phase==="pick"){
-    return `${hostTop()}${boardHTML(s)}
-    <div class="panel" style="align-items:center;text-align:center">
-      <h2>Round ${s.round}: choose the secret words</h2>
-      <p class="hint">On your phones, each team picks one of four words for the other team to guess, then confirms. Traps come next.</p>
-      <div class="status">${[0,1].map(t => { const by = 1-t; return `<span class="pill ${s.picked[t]?'done':''}">${esc(s.names[by])} choosing for ${esc(s.names[t])}: ${s.picked[t]?"✓ chosen":"… choosing"}</span>`; }).join("")}</div>
-    </div>${hostFoot()}`;
-  }
   if(s.phase==="traps"){
     return `${hostTop()}${boardHTML(s)}
     <div class="panel" style="align-items:center;text-align:center">
       <h2>Round ${s.round}: set your traps</h2>
-      <p class="hint">Both teams, on your phones: agree on trapwords for the other team's secret word. Everyone on a team can type; the list is shared across your phones.</p>
+      <p class="hint">Both teams, on your phone: look at the other team's secret word and agree on your trapwords together. Pass the phone around.</p>
       <div class="status">${[0,1].map(t => { const by = 1-t; return `<span class="pill ${s.ready[t]?'done':''}">${esc(s.names[by])} trapping ${esc(s.names[t])}: ${s.traps[t].length} trap${s.traps[t].length>1?"s":""} ${s.ready[t]?"✓ done":"… writing"}</span>`; }).join("")}</div>
       ${[0,1].map(t => rulesFor(s,t) ? `<div class="col" style="align-items:center;width:100%"><div class="label">${esc(s.names[t])} this round</div>${rulesFor(s,t)}</div>` : "").join("")}
     </div>${hostFoot()}`;
   }
   if(s.phase==="read"){
-    const d = s.turn.d, o = 1-d, g = clueGiver(s,d), gp = giverPlayer(s,d);
-    const gOn = gp && gp.phone && onlineIds().has(gp.id);
+    const d = s.turn.d, o = 1-d, g = clueGiver(s,d);
     return `${hostTop()}${boardHTML(s)}
     <div class="panel" style="align-items:center;text-align:center">
       <div class="who ${tcls(d)}">${s.turnIdx===0 ? (s.pos[0]!==s.pos[1] ? "first turn goes to the team behind" : "first turn goes to the glowing book") : "second turn"}</div>
       <h2>${tname(s,d)} give clues${g?`: ${esc(g)} holds the torch`:""}</h2>
-      <p class="hint">${gOn ? `${esc(g)} sees the word on their own phone. Start the timer once they've read it.` : `${tname(s,o)}, show the word on your phone to the clue-giver, then start the timer.`}</p>
+      <p class="hint">${tname(s,o)}, hand your phone to the clue-giver so they can read the word, then start the timer.</p>
       ${rulesFor(s,d)}
       <div class="timer sm">${s.turn.limit}</div>
       <button class="primary big" data-a="start">Start timer</button>
@@ -683,67 +627,32 @@ function phoneJoin(code, team){
   lsSet(PREFIX+"phone", {code, team});
   history.replaceState(null, "", location.pathname);
   render();
-  if(typeof Peer === "undefined"){ netState="error"; netMsg="Couldn't load the connection library. Check your internet and reload."; render(); return; }
-  peer = new Peer({debug:0});
-  peer.on("open", () => phoneConnect());
-  peer.on("disconnected", () => { try{ peer.reconnect(); }catch(e){} });
-  peer.on("error", e => {
-    if(e.type==="peer-unavailable"){ netState="error"; netMsg="Can't reach the table. Is the iPad still open on this game?"; render(); setTimeout(phoneConnect, 3000); }
-    else if(["network","server-error","socket-error","socket-closed"].includes(e.type)){ netState="error"; netMsg="Connection problem. Retrying…"; render(); }
-  });
+  netState = "connecting"; netMsg = ""; render();
+  openChannel(code, myId, () => ({pid:myId, team:myTeam, name:myName}), d => {
+    if(d.type!=="state" || !d.s) return;
+    const prevPhase = V?.phase; V = d.s;
+    if(V.phase==="run" && !V.turn.paused) localEnd = Date.now() + d.remain*1000;
+    if(prevPhase!=="run" && V.phase==="run") beep(660,.12);
+    render();
+  }, () => hello());
 }
-let retryT = null;
-function phoneConnect(){
-  clearTimeout(retryT);
-  if(!peer || peer.destroyed) return;
-  if(peer.disconnected){ try{ peer.reconnect(); }catch(e){} retryT = setTimeout(phoneConnect, 2000); return; }
-  netState = netState==="on" ? "connecting" : netState; render();
-  const c = peer.connect(PREFIX + phoneCode.toLowerCase(), {reliable:true});
-  conn = c;
-  c.on("open", () => { netState="on"; netMsg=""; hello(); render(); });
-  c.on("data", d => { if(d && d.type==="state"){ const prevPhase = V?.phase, prevSig = phoneSig(V, phoneOnline); V = d.s; phoneOnline = new Set(d.online||[]); if(V.phase==="run" && !V.turn.paused) localEnd = Date.now() + d.remain*1000; if(prevPhase!=="run" && V.phase==="run") beep(660,.12);
-    keepLocalTraps();
-    // while teammates type traps, only the trap text changes: patch the boxes in place instead of redrawing the screen
-    if(V.phase==="traps" && prevPhase==="traps" && prevSig===phoneSig(V, phoneOnline) && patchTraps()) return;
-    render(); } });
-  c.on("close", () => { if(conn===c){ netState="connecting"; netMsg="Reconnecting…"; render(); retryT = setTimeout(phoneConnect, 2000); } });
-  c.on("error", () => {});
-}
-let phoneOnline = new Set();
-function hello(){ try{ if(conn && conn.open) conn.send({type:"hello", team:myTeam, pid:myId, name:myName}); }catch(e){} }
-function send(a, extra={}){ try{ if(conn && conn.open) conn.send({type:"act", a, ...extra}); }catch(e){} }
+let phoneOnline = { has: id => presence.some(m => m.pid===id) };
+const hostHere = () => presence.some(m => m.host);
+function retrack(){ if(chan && chanOK){ try{ chan.track({pid:myId, team:myTeam, name:myName}); }catch(e){} } }
+function hello(){ chanSend({type:"hello", team:myTeam, pid:myId, name:myName}); }
+function send(a, extra={}){ chanSend({type:"act", from:myTeam, a, ...extra}); }
+// keep knocking until the table answers (covers the iPad opening after the phone)
+setInterval(() => { if(ROLE==="phone" && chanOK && !V) hello(); }, 2500);
+let hostWasHere = false;
+setInterval(() => { if(ROLE!=="phone") return; const h = hostHere(); if(h && !hostWasHere) hello(); hostWasHere = h; }, 1000);
 const trapTimers = {};
-function sendTrap(t,i,v){ pendTraps[i] = {v, at:Date.now(), key:trapKey()}; clearTimeout(trapTimers[i]); trapTimers[i] = setTimeout(() => send("trap",{t,i,v}), 120); }
-/* what this phone typed but the iPad hasn't echoed back yet. An incoming update can be older than our last keystrokes,
-   so for a short while our own text wins over it; otherwise letters would appear to vanish. */
-const pendTraps = {};
-const trapKey = () => V ? `${V.round}-${1-myTeam}` : "";
-function keepLocalTraps(){
-  if(!V || V.phase!=="traps") return;
-  const O = 1-myTeam, list = V.traps[O] || [], key = trapKey(), now = Date.now();
-  Object.keys(pendTraps).forEach(i => {
-    const p = pendTraps[i];
-    if(p.key!==key || now-p.at > 2000 || list[i]===p.v || i >= list.length) delete pendTraps[i];  // echoed, stale or new round
-    else list[i] = p.v;
-  });
-}
-/* everything on the phone screen except the trap text and the version counter */
-function phoneSig(s, online){ if(!s) return ""; return JSON.stringify({...s, v:0, traps:(s.traps||[]).map(a => a.length), online:[...(online||[])].sort()}); }
-function patchTraps(){
-  const O = 1-myTeam, list = V.traps[O] || [];
-  for(let i=0;i<list.length;i++){
-    const el = document.getElementById("tr"+i);
-    if(!el) return false;                       // screen isn't the trap editor: fall back to a full redraw
-    if(el !== document.activeElement && el.value !== list[i]) el.value = list[i];
-  }
-  return true;
-}
+function sendTrap(t,i,v){ clearTimeout(trapTimers[i]); trapTimers[i] = setTimeout(() => send("trap",{t,i,v}), 200); }
 function phoneRemain(){ const s=V; if(!s?.turn) return 0; if(s.phase!=="run"||s.turn.paused) return s.turn.remain; return Math.max(0,(localEnd-Date.now())/1000); }
 
 function phoneView(){
   const s = V, T = myTeam, O = 1-T;
   const teamName = s ? s.names[T] : (T ? "the second team" : "the first team");
-  const head = (inner) => `<div class="foot"><span><span class="netdot ${netState==="on"?"on":""}"></span>${netState==="on" ? "Connected" : esc(netMsg || "Connecting…")}</span>
+  const head = (inner) => `<div class="foot"><span><span class="netdot ${netState==="on" && hostHere()?"on":""}"></span>${netState!=="on" ? esc(netMsg || "Connecting…") : hostHere() ? "Connected" : "Waiting for the table iPad…"}</span>
       <span class="${tcls(T)}">${myName ? `${esc(myName)} on ${esc(teamName)}` : esc(teamName)}</span><button class="ghost" data-a="leave" style="padding:6px 12px;font-size:.9rem">Leave</button></div>${inner}`;
   if(!myName) return head(`<div class="screen"><div class="who ${tcls(T)}">joining ${esc(teamName)}</div><h2>What's your name?</h2>
       <input id="myname" maxlength="20" autocomplete="given-name" placeholder="Your name" style="max-width:360px;font-size:1.3rem;text-align:center">
@@ -756,35 +665,15 @@ function phoneView(){
       <button class="ghost" data-a="switch-team">Switch to ${esc(s.names[O])}</button>
       ${RULES_HELP}</div>`);
 
-  const meGiver = giverPlayer(s,T)?.id===myId;
-  const torchNote = meGiver ? `<p class="hint">You hold ${esc(poss(s.names[T]))} torch this round: you'll give the clues.</p>` : "";
-  if(s.phase==="pick"){
-    const sel = s.pickSel[O], done = s.picked[O], opts = s.options[O]||[];
-    let me = `<div class="banner ${T?'b':'a'}"><div class="who">round ${s.round}, keep this screen to ${esc(s.names[T])}</div><h2>Choose ${tname(s,O)}'s word</h2></div>
-      ${torchNote}`;
-    if(!done){
-      me += `<p class="hint">Pick the word ${esc(s.names[O])} must get their team to guess. Anyone on your team can tap; it shows on all your phones.</p>
-        <div class="picks">${opts.map((w,i)=>`<button class="pickw ${i===sel?'on':''}" data-a="pick-sel" data-i="${i}" aria-pressed="${i===sel}">${esc(w)}</button>`).join("")}</div>
-        <button class="primary big" data-a="pick-confirm" ${sel<0?"disabled":""}>Confirm word</button>`;
-    } else {
-      me += `<div class="label">their secret word</div><div class="secret">${esc(s.words[O])}</div>
-        <p class="hint">Locked in. ${s.picked[T] ? "Both words are chosen." : `Waiting for ${esc(s.names[O])} to choose your word. Traps come next.`}</p>
-        <button class="ghost" data-a="unpick">Change our pick</button>`;
-    }
-    return head(`<div class="screen" style="justify-content:flex-start">${me}</div>`);
-  }
-
   if(s.phase==="traps"){
     const n = s.traps[O].length, done = s.ready[O];
     let me = `<div class="banner ${T?'b':'a'}"><div class="who">round ${s.round}, keep this screen to ${esc(s.names[T])}</div><h2>Trap ${tname(s,O)}</h2></div>
-      ${torchNote}
       <div class="label">their secret word</div><div class="secret">${esc(s.words[O])}</div>
       ${clueGiver(s,O)?`<p class="hint">Their clue-giver is <b>${esc(clueGiver(s,O))}</b>. Use what you know about them.</p>`:""}
       ${rulesFor(s,O)}
-      <div class="label">${n} trapword${n>1?"s":""} (their room is ${s.rooms[s.pos[O]]}${n>s.rooms[s.pos[O]]?`, +${n-s.rooms[s.pos[O]]} from a curse`:""})</div>`;
+      <div class="label">${n} trapword${n>1?"s":""} (their room is ${s.rooms[s.pos[O]]})</div>`;
     if(!done){
-      me += `<p class="hint">Everyone on your team can type here; the list is shared across your phones.</p>
-        <div class="traps">${s.traps[O].map((v,i)=>`<label><span>${i+1}</span><input id="tr${i}" data-in="trap" data-i="${i}" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(v)}"></label>`).join("")}</div>
+      me += `<div class="traps">${s.traps[O].map((v,i)=>`<label><span>${i+1}</span><input id="tr${i}" data-in="trap" data-i="${i}" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(v)}"></label>`).join("")}</div>
         <div class="err" id="err"></div>
         <button class="primary big" data-a="ready">Our list is done</button>`;
     } else {
@@ -799,14 +688,7 @@ function phoneView(){
     const t = s.turn, d = t.d;
     const key = `${s.round}-${s.turnIdx}`;
     if(pl.key!==key) pl = {key, step:"give"};
-    const gp = giverPlayer(s,d), g = clueGiver(s,d);
-    const gOn = !!(gp && gp.phone && phoneOnline.has(gp.id));   // clue-giver reads the word on their own phone
-    const dots = `<div class="dots">${Array.from({length:t.glimit},(_,i)=>`<i class="${i<t.guesses?'x':''}"></i>`).join("")}</div>`;
     if(d===O){ // we hold the book for the other team
-      if(s.phase==="read" && gOn) return head(`<div class="screen"><div class="who ${tcls(d)}">${esc(poss(s.names[d]))} turn</div>
-          <h2><span class="${tcls(d)}">${esc(g)}</span> is reading the word on their phone</h2>
-          <p class="hint">Their word is <b>${esc(s.words[d])}</b>. Start the timer once ${esc(g)} has read and understood it.</p>
-          <button class="primary big" data-a="start">Start timer</button></div>`);
       if(s.phase==="read"){
         if(pl.step==="give") return head(`<div class="screen"><div class="who ${tcls(d)}">${esc(poss(s.names[d]))} turn</div>
           <h2>Hand this phone to ${clueGiver(s,d)?`<span class="${tcls(d)}">${esc(clueGiver(s,d))}</span>`:`<span class="${tcls(d)}">${esc(poss(s.names[d]))}</span> clue-giver`}</h2>
@@ -825,7 +707,7 @@ function phoneView(){
         <p class="hint">Their word is <b>${esc(s.words[d])}</b>.</p>
         <div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div>
         <div class="bar"><i id="bar"></i></div>
-        <div class="label">listen for your traps${cursesOn(s,d).some(c => c===CURSES.snare) ? " from the clue-giver or guessers (snare)" : ""} (tap the one they said)</div>
+        <div class="label">listen for your traps (tap the one they said)</div>
         <div class="chips">${s.traps[d].map((x,i)=>`<button class="chip" data-a="sprung" data-i="${i}">${esc(x)}</button>`).join("")}</div>
         <div class="dots">${Array.from({length:t.glimit},(_,i)=>`<i class="${i<t.guesses?'x':''}"></i>`).join("")}</div>
         <div class="outs"><button class="big" data-a="wrong">Wrong guess (${t.guesses}/${t.glimit})</button><button class="ghost" data-a="unwrong" ${t.guesses?"":"disabled"}>Undo</button></div>
@@ -833,26 +715,12 @@ function phoneView(){
       </div>`);
     }
     // our team is giving clues
-    const n = s.traps[T].length;
-    if(meGiver && s.words[T]){ // this phone is the clue-giver's: show the word right here
-      if(s.phase==="read") return head(`<div class="screen"><div class="who ${tcls(T)}">you hold the torch. keep this screen to yourself</div>
-          <div class="label">your secret word</div><div class="secret">${esc(s.words[T])}</div>
-          <p class="hint">${n} hidden trap${n>1?"s":""}. Any form of the word itself is off-limits too.</p>
-          ${rulesFor(s,T)}
-          <button class="primary big" data-a="start">Got it, start the timer</button></div>`);
-      return head(`<div class="screen" style="gap:14px"><div class="who ${tcls(T)}">give clues for</div>
-          <div class="secret" style="font-size:clamp(2.4rem,11vw,4.5rem)">${esc(s.words[T])}</div>
-          <div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div><div class="bar"><i id="bar"></i></div>
-          ${dots}
-          <p class="hint">Avoid any form of the word and ${esc(poss(s.names[O]))} ${n} hidden trap${n>1?"s":""}.</p>
-          ${rulesFor(s,T)}</div>`);
-    }
     return head(`<div class="screen">
       <div class="who ${tcls(T)}">your turn</div>
-      <h2>${g?`${esc(g)} gives clues`:"Your clue-giver gives clues"}</h2>
-      ${s.phase==="read" ? `<p class="hint">${gOn ? `${esc(g)} is reading the word on their own phone.` : `${tname(s,O)} will show the word to your clue-giver.`}</p>` :
+      <h2>${clueGiver(s,T)?`${esc(clueGiver(s,T))} gives clues`:"Your clue-giver gives clues"}</h2>
+      ${s.phase==="read" ? `<p class="hint">${tname(s,O)} will hand their phone to your clue-giver.</p>` :
         `<div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div><div class="bar"><i id="bar"></i></div>
-         ${dots}
+         <div class="dots">${Array.from({length:t.glimit},(_,i)=>`<i class="${i<t.guesses?'x':''}"></i>`).join("")}</div>
          <p class="hint">Shout guesses. ${t.glimit} guesses allowed, no questions, no conferring.</p>`}
       ${rulesFor(s,T)}</div>`);
   }
@@ -896,7 +764,7 @@ setInterval(() => {
   }
 }, 200);
 // keep phones' clocks honest during long turns
-setInterval(() => { if(ROLE==="host" && S?.phase==="run") sendAll(); }, 5000);
+setInterval(() => { if(ROLE==="host" && S?.phase==="run") chanSend(stateMsg()); }, 5000);
 
 /* ============================================================ events */
 document.addEventListener("click", e => {
@@ -914,13 +782,13 @@ document.addEventListener("click", e => {
   }
   if(ROLE==="phone"){
     const s = V, O = 1-myTeam;
-    if(a==="leave"){ lsDel(PREFIX+"phone"); try{ peer?.destroy(); }catch(x){} ROLE=null; V=null; render(); return; }
+    if(a==="leave"){ lsDel(PREFIX+"phone"); closeChannel(); ROLE=null; V=null; render(); return; }
     if(a==="set-name"){
       const v = ($("#myname")?.value||"").trim().slice(0,20);
       if(!v){ $("#err").textContent = "Type your name so your team can see you joined."; return; }
-      myName = v; lsSet(PREFIX+"me", {id:myId, name:myName}); arm(); hello(); render(); return;
+      myName = v; lsSet(PREFIX+"me", {id:myId, name:myName}); arm(); retrack(); hello(); render(); return;
     }
-    if(a==="switch-team"){ myTeam = 1-myTeam; lsSet(PREFIX+"phone", {code:phoneCode, team:myTeam}); hello(); render(); return; }
+    if(a==="switch-team"){ myTeam = 1-myTeam; lsSet(PREFIX+"phone", {code:phoneCode, team:myTeam}); retrack(); hello(); render(); return; }
     if(a==="pl-show"){ pl.step="show"; render(); return; }
     if(a==="pl-hide"){ pl.step="back"; render(); return; }
     if(a==="ready"){
@@ -933,9 +801,6 @@ document.addEventListener("click", e => {
       send("ready",{t:O,on:true}); return;
     }
     if(a==="unready"){ send("ready",{t:O,on:false}); return; }
-    if(a==="pick-sel"){ if(V?.phase==="pick" && !V.picked[O]){ V.pickSel[O] = i; render(); } send("pick-sel",{t:O,i}); return; }
-    if(a==="pick-confirm"){ send("pick",{t:O,on:true}); return; }
-    if(a==="unpick"){ send("pick",{t:O,on:false}); return; }
     if(a==="start"){ arm(); send("start"); return; }
     if(a==="sprung"){ send("sprung",{i}); return; }
     send(a, {i});
@@ -944,7 +809,7 @@ document.addEventListener("click", e => {
 document.addEventListener("input", e => {
   const el = e.target, k = el.dataset.in; if(!k) return;
   if(ROLE==="host" && S){
-    if(k==="name"){ S.names[+el.dataset.t] = el.value.slice(0,16) || (el.dataset.t==="1"?"Rats":"Cats"); }
+    if(k==="name"){ S.names[+el.dataset.t] = el.value.slice(0,16) || (el.dataset.t==="1"?"Torches":"Lanterns"); }
     else if(k==="rname"){ const p = S.roster[+el.dataset.t][+el.dataset.i]; if(p) p.name = el.value.slice(0,20); }
     else if(k==="cfg"){ S.cfg[el.dataset.k] = el.dataset.k==="secs" ? +el.value : el.value; if(el.tagName==="SELECT"){ broadcast(); return; } }
     else if(k==="cfgb"){ S.cfg[el.dataset.k] = el.checked; }
