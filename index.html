@@ -115,6 +115,14 @@ button.chip{border-style:solid;border-color:var(--danger)}
 details{color:var(--dust)} details summary{cursor:pointer;color:var(--parch);font-weight:700}
 details ul,details ol{padding-left:1.2em;margin:.5em 0 0;display:flex;flex-direction:column;gap:5px;max-width:70ch}
 .log{color:var(--dust);font-size:.95rem;display:flex;flex-direction:column;gap:3px}
+.givers{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+.givers .pill b{font-weight:700}
+.pill.ta{border-color:var(--teamA)} .pill.tb{border-color:var(--teamB)}
+.curses{display:flex;flex-direction:column;gap:8px;width:100%;max-width:820px;align-self:center}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.cblock{display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid var(--mortar);border-radius:12px;padding:10px 12px;background:var(--slab);min-width:0}
+.cblock.a{border-color:color-mix(in srgb,var(--teamA) 55%,var(--mortar))} .cblock.b{border-color:color-mix(in srgb,var(--teamB) 55%,var(--mortar))}
+.cblock .rule{max-width:none}
 .credit{text-align:center;color:var(--dust);font-size:.9rem;padding-top:6px}
 .credit a{color:var(--torch);text-decoration:none;border-bottom:1px solid currentColor}
 .roster{display:flex;flex-direction:column;gap:8px;width:100%}
@@ -204,6 +212,26 @@ function rulesFor(s,t){
     (s.monsterCurses?.[t]||[]).forEach(id => { const c=CURSES[id]; h += `<div class="rule"><b>${esc(poss(m.name))} curse: ${esc(c.name)}</b>${esc(c.text)}</div>`; });
   }
   return h;
+}
+/* both teams' curses for this round, the viewer's own team first (T = viewer's team, -1 on the iPad) */
+function curseBoard(s, T){
+  if(!rulesFor(s,0) && !rulesFor(s,1)) return `<p class="hint">No curses in play this round.</p>`;
+  const block = t => {
+    const who = t===T ? `Your team, ${esc(s.names[t])}, when you give clues` : `${esc(s.names[t])}, when they give clues`;
+    return `<div class="cblock ${t?'b':'a'}"><div class="label ${tcls(t)}">${who}</div>${rulesFor(s,t) || `<p class="hint">No curses.</p>`}</div>`;
+  };
+  return `<div class="curses"><div class="label" style="text-align:center">curses this round</div><div class="cgrid">${(T===-1?[0,1]:[T,1-T]).map(block).join("")}</div></div>`;
+}
+/* the curses that apply to the turn being played, labelled with whose they are */
+function turnRules(s, t, T){
+  const r = rulesFor(s,t); if(!r) return "";
+  return `<div class="col" style="width:100%;align-items:center"><div class="label">${t===T ? "your team plays under" : `${esc(s.names[t])} play under`}</div>${r}</div>`;
+}
+/* who holds each team's torch (s.torch already points at next round once a round ends) */
+function giversBar(s, T, label){
+  const pill = t => { const g = clueGiver(s,t), you = T===t && giverPlayer(s,t)?.id===myId;
+    return `<span class="pill ${tcls(t)}">${esc(s.names[t])}: <b>${g ? esc(g) : "not set"}</b>${you?" (you)":""}</span>`; };
+  return `<div class="givers"><span class="label">${label || "clue-givers this round"}</span>${pill(0)}${pill(1)}</div>`;
 }
 function boardHTML(s){
   const n = s.rooms.length;
@@ -565,7 +593,8 @@ function hostTop(){
   return `<div class="top"><div><div class="label">round ${S.round} of ${MAX_ROUNDS}</div><h1>The Dungeon</h1></div>
     <div class="meta"><div><span class="label">${esc(S.names[0])} room</span><b class="ta">${S.rooms[S.pos[0]]}</b></div>
     <div><span class="label">${esc(S.names[1])} room</span><b class="tb">${S.rooms[S.pos[1]]}</b></div>
-    <div><span class="label">timer</span><b>${S.cfg.secs}s</b></div></div></div>`;
+    <div><span class="label">timer</span><b>${S.cfg.secs}s</b></div></div></div>
+    ${giversBar(S, -1, S.phase==="roundEnd" ? "clue-givers next round" : "")}`;
 }
 function hostFoot(){
   return `${roomViewer()}<div class="foot">${netLine()}
@@ -613,6 +642,7 @@ function hostView(){
       <h2>Round ${s.round}: choose the secret words</h2>
       <p class="hint">On your phones, each team picks one of four words for the other team to guess, then confirms. Traps come next.</p>
       <div class="status">${[0,1].map(t => { const by = 1-t; return `<span class="pill ${s.picked[t]?'done':''}">${esc(s.names[by])} choosing for ${esc(s.names[t])}: ${s.picked[t]?"✓ chosen":"… choosing"}</span>`; }).join("")}</div>
+      ${curseBoard(s,-1)}
     </div>${hostFoot()}`;
   }
   if(s.phase==="traps"){
@@ -621,7 +651,7 @@ function hostView(){
       <h2>Round ${s.round}: set your traps</h2>
       <p class="hint">Both teams, on your phones: agree on trapwords for the other team's secret word. Everyone on a team can type; the list is shared across your phones.</p>
       <div class="status">${[0,1].map(t => { const by = 1-t; return `<span class="pill ${s.ready[t]?'done':''}">${esc(s.names[by])} trapping ${esc(s.names[t])}: ${s.traps[t].length} trap${s.traps[t].length>1?"s":""} ${s.ready[t]?"✓ done":"… writing"}</span>`; }).join("")}</div>
-      ${[0,1].map(t => rulesFor(s,t) ? `<div class="col" style="align-items:center;width:100%"><div class="label">${esc(s.names[t])} this round</div>${rulesFor(s,t)}</div>` : "").join("")}
+      ${curseBoard(s,-1)}
     </div>${hostFoot()}`;
   }
   if(s.phase==="read"){
@@ -632,7 +662,7 @@ function hostView(){
       <div class="who ${tcls(d)}">${s.turnIdx===0 ? (s.pos[0]!==s.pos[1] ? "first turn goes to the team behind" : "first turn goes to the glowing book") : "second turn"}</div>
       <h2>${tname(s,d)} give clues${g?`: ${esc(g)} holds the torch`:""}</h2>
       <p class="hint">${gOn ? `${esc(g)} sees the word on their own phone. Start the timer once they've read it.` : `${tname(s,o)}, show the word on your phone to the clue-giver, then start the timer.`}</p>
-      ${rulesFor(s,d)}
+      ${turnRules(s,d,-1)}
       <div class="timer sm">${s.turn.limit}</div>
       <button class="primary big" data-a="start">Start timer</button>
     </div>${hostFoot()}`;
@@ -642,7 +672,7 @@ function hostView(){
     return `<div class="screen">
       <div class="who ${tcls(d)}">${esc(s.names[d])} guessing</div>
       <p class="hint">${clueGiver(s,d)?`${esc(clueGiver(s,d))} gives clues. `:""}${s.traps[d].length} trap${s.traps[d].length>1?"s are":" is"} set.</p>
-      ${rulesFor(s,d)}
+      ${turnRules(s,d,-1)}
       <div class="timer" id="timer">${Math.ceil(remainNow())}</div>
       <div class="bar"><i id="bar"></i></div>
       <div class="label">wrong guesses</div>
@@ -766,7 +796,7 @@ function phoneView(){
   const torchNote = meGiver ? `<p class="hint">You hold ${esc(poss(s.names[T]))} torch this round: you'll give the clues.</p>` : "";
   if(s.phase==="pick"){
     const sel = s.pickSel[O], done = s.picked[O], opts = s.options[O]||[];
-    let me = `<div class="banner ${T?'b':'a'}"><div class="who">round ${s.round}, keep this screen to ${esc(s.names[T])}</div><h2>Choose ${tname(s,O)}'s word</h2></div>
+    let me = `<div class="banner ${T?'b':'a'}"><div class="who">round ${s.round}, keep this screen to ${esc(s.names[T])}</div><h2>Choose <span class="${tcls(O)}">${esc(poss(s.names[O]))}</span> word</h2></div>
       ${torchNote}`;
     if(!done){
       me += `<p class="hint">Pick the word ${esc(s.names[O])} must get their team to guess. Anyone on your team can tap; it shows on all your phones.</p>
@@ -777,7 +807,7 @@ function phoneView(){
         <p class="hint">Locked in. ${s.picked[T] ? "Both words are chosen." : `Waiting for ${esc(s.names[O])} to choose your word. Traps come next.`}</p>
         <button class="ghost" data-a="unpick">Change our pick</button>`;
     }
-    return head(`<div class="screen" style="justify-content:flex-start">${me}</div>`);
+    return head(`<div class="screen" style="justify-content:flex-start">${me}${giversBar(s,T)}${curseBoard(s,T)}</div>`);
   }
 
   if(s.phase==="traps"){
@@ -786,7 +816,6 @@ function phoneView(){
       ${torchNote}
       <div class="label">their secret word</div><div class="secret">${esc(s.words[O])}</div>
       ${clueGiver(s,O)?`<p class="hint">Their clue-giver is <b>${esc(clueGiver(s,O))}</b>. Use what you know about them.</p>`:""}
-      ${rulesFor(s,O)}
       <div class="label">${n} trapword${n>1?"s":""} (their room is ${s.rooms[s.pos[O]]}${n>s.rooms[s.pos[O]]?`, +${n-s.rooms[s.pos[O]]} from a curse`:""})</div>`;
     if(!done){
       me += `<p class="hint">Everyone on your team can type here; the list is shared across your phones.</p>
@@ -798,7 +827,7 @@ function phoneView(){
         <p class="hint">Locked in. ${s.ready[T] ? "Both teams are done." : `Waiting for ${esc(s.names[O])} to finish your traps.`}</p>
         <button class="ghost" data-a="unready">Edit our list</button>`;
     }
-    return head(`<div class="screen" style="justify-content:flex-start">${me}${RULES_HELP}</div>`);
+    return head(`<div class="screen" style="justify-content:flex-start">${me}${giversBar(s,T)}${curseBoard(s,T)}${RULES_HELP}</div>`);
   }
 
   if(s.phase==="read" || s.phase==="run"){
@@ -810,8 +839,9 @@ function phoneView(){
     const dots = `<div class="dots">${Array.from({length:t.glimit},(_,i)=>`<i class="${i<t.guesses?'x':''}"></i>`).join("")}</div>`;
     if(d===O){ // we hold the book for the other team
       if(s.phase==="read" && gOn) return head(`<div class="screen"><div class="who ${tcls(d)}">${esc(poss(s.names[d]))} turn</div>
-          <h2><span class="${tcls(d)}">${esc(g)}</span> is reading the word on their phone</h2>
+          <h2><span class="${tcls(d)}">${esc(g)}</span> is getting ready to read the word on their phone</h2>
           <p class="hint">Their word is <b>${esc(s.words[d])}</b>. Start the timer once ${esc(g)} has read and understood it.</p>
+          ${turnRules(s,d,T)}
           <button class="primary big" data-a="start">Start timer</button></div>`);
       if(s.phase==="read"){
         if(pl.step==="give") return head(`<div class="screen"><div class="who ${tcls(d)}">${esc(poss(s.names[d]))} turn</div>
@@ -820,7 +850,7 @@ function phoneView(){
           <button class="primary big" data-a="pl-show">I'm the clue-giver: show me the word</button></div>`);
         if(pl.step==="show") return head(`<div class="screen"><div class="label">your secret word</div><div class="secret">${esc(s.words[d])}</div>
           <p class="hint">${s.traps[d].length} hidden trap${s.traps[d].length>1?"s":""}. Any form of the word itself is off-limits too.</p>
-          ${rulesFor(s,d)}
+          ${turnRules(s,d,d)}
           <button class="primary big" data-a="pl-hide">Got it, hide the word</button></div>`);
         return head(`<div class="screen"><h2>Take your phone back</h2><p class="hint">Start the timer once ${esc(clueGiver(s,d)||"the clue-giver")} has read and understood the word.</p>
           <button class="primary big" data-a="start">Start timer</button>
@@ -831,6 +861,7 @@ function phoneView(){
         <p class="hint">Their word is <b>${esc(s.words[d])}</b>.</p>
         <div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div>
         <div class="bar"><i id="bar"></i></div>
+        ${turnRules(s,d,T)}
         <div class="label">listen for your traps${cursesOn(s,d).some(c => c===CURSES.snare) ? " from the clue-giver or guessers (snare)" : ""} (tap the one they said)</div>
         <div class="chips">${s.traps[d].map((x,i)=>`<button class="chip" data-a="sprung" data-i="${i}">${esc(x)}</button>`).join("")}</div>
         <div class="dots">${Array.from({length:t.glimit},(_,i)=>`<i class="${i<t.guesses?'x':''}"></i>`).join("")}</div>
@@ -841,26 +872,31 @@ function phoneView(){
     // our team is giving clues
     const n = s.traps[T].length;
     if(meGiver && s.words[T]){ // this phone is the clue-giver's: show the word right here
-      if(s.phase==="read") return head(`<div class="screen"><div class="who ${tcls(T)}">you hold the torch. keep this screen to yourself</div>
+      if(s.phase==="read" && pl.step!=="show") return head(`<div class="screen"><div class="who ${tcls(T)}">your turn to give clues</div>
+          <h2>You hold the torch</h2>
+          <p class="hint">Turn your screen away from everyone else. Your secret word appears when you tap below.</p>
+          ${turnRules(s,T,T)}
+          <button class="primary big" data-a="pl-show">I'm ready, show my word</button></div>`);
+      if(s.phase==="read") return head(`<div class="screen"><div class="who ${tcls(T)}">keep this screen to yourself</div>
           <div class="label">your secret word</div><div class="secret">${esc(s.words[T])}</div>
           <p class="hint">${n} hidden trap${n>1?"s":""}. Any form of the word itself is off-limits too.</p>
-          ${rulesFor(s,T)}
+          ${turnRules(s,T,T)}
           <button class="primary big" data-a="start">Got it, start the timer</button></div>`);
       return head(`<div class="screen" style="gap:14px"><div class="who ${tcls(T)}">give clues for</div>
           <div class="secret" style="font-size:clamp(2.4rem,11vw,4.5rem)">${esc(s.words[T])}</div>
           <div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div><div class="bar"><i id="bar"></i></div>
           ${dots}
           <p class="hint">Avoid any form of the word and ${esc(poss(s.names[O]))} ${n} hidden trap${n>1?"s":""}.</p>
-          ${rulesFor(s,T)}</div>`);
+          ${turnRules(s,T,T)}</div>`);
     }
     return head(`<div class="screen">
       <div class="who ${tcls(T)}">your turn</div>
       <h2>${g?`${esc(g)} gives clues`:"Your clue-giver gives clues"}</h2>
-      ${s.phase==="read" ? `<p class="hint">${gOn ? `${esc(g)} is reading the word on their own phone.` : `${tname(s,O)} will show the word to your clue-giver.`}</p>` :
+      ${s.phase==="read" ? `<p class="hint">${gOn ? `${esc(g)} is reading the word on their own phone.` : `${tname(s,O)} will show the word to your clue-giver.`}</p>${giversBar(s,T)}` :
         `<div class="timer sm" id="timer">${Math.ceil(phoneRemain())}</div><div class="bar"><i id="bar"></i></div>
          ${dots}
          <p class="hint">Shout guesses. ${t.glimit} guesses allowed, no questions, no conferring.</p>`}
-      ${rulesFor(s,T)}</div>`);
+      ${turnRules(s,T,T)}</div>`);
   }
 
   if(s.phase==="result"){
@@ -872,7 +908,8 @@ function phoneView(){
       <p class="hint">Disagree? Discuss it, then fix the result on the iPad.</p></div>`);
   }
   if(s.phase==="roundEnd") return head(`<div class="screen"><h2>Round ${s.round-1} is over</h2>${s.notes.map(n=>`<p>${esc(n)}</p>`).join("")}
-      <p class="hint">${clueGiver(s,T)?`Next clue-giver for ${esc(s.names[T])}: <b>${esc(clueGiver(s,T))}</b>. `:"Pass the torch to your next clue-giver. "}Waiting for the iPad to start round ${s.round}.</p></div>`);
+      ${giversBar(s,T,"clue-givers next round")}
+      <p class="hint">Waiting for the iPad to start round ${s.round}.</p></div>`);
   if(s.phase==="over"){
     const w = s.winners;
     const head2 = s.monsterWon ? `The ${esc(monsterOf(s).name)} wins` : w.length===2 ? "Both teams win!" : w.includes(T) ? "You win!" : `${esc(s.names[w[0]])} win`;
